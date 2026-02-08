@@ -1,7 +1,7 @@
 # Implementation Plan: Dual-Entry Accounting & Invoicing Service
 
 **Branch**: `backend-api` | **Date**: 2026-02-08 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/backend-api/spec.md`
+**Input**: Feature specification from `/specs/main/spec.md`
 
 ## Summary
 
@@ -88,7 +88,7 @@ Build a production-grade dual-entry accounting and invoicing service as a .NET 1
 ### Documentation (this feature)
 
 ```text
-specs/backend-api/
+specs/main/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output
 ├── data-model.md        # Phase 1 output

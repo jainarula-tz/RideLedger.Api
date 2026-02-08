@@ -1,50 +1,64 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# RideLedger Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Production-Grade Code Mandate
+All code MUST implement resilience patterns (retry, circuit breaker, timeout) via Polly. All services MUST include structured logging (Serilog) with correlation IDs, OpenTelemetry distributed tracing, proper CancellationToken propagation, and resource disposal patterns. Performance-optimized queries MUST use AsNoTracking() for read operations.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Feature/Domain-First Architecture
+Services MUST follow domain-driven design with single bounded context. Each service MUST use database-per-service pattern. Domain entities MUST NOT be shared across service boundaries. Clear domain boundaries are mandatory.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Security by Default
+All API endpoints MUST require JWT authentication. Input validation MUST use FluentValidation at API boundary. Policy-based authorization MUST be enforced. Secrets MUST be stored in Key Vault, never in code. Sensitive data MUST be masked in logs.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Performance-First Design
+All APIs MUST define performance targets (p95 latency). List queries MUST implement pagination. Read operations MUST use AsNoTracking(). Database queries MUST have indexing strategy for WHERE/JOIN/ORDER BY clauses.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Strong Typing
+.NET projects MUST enable nullable reference types. Dynamic types are forbidden. Result pattern MUST be used for expected failures instead of exceptions.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. Domain-Driven Design Layers
+Projects MUST separate into clear layers: Domain (zero infrastructure dependencies), Application (use cases), Infrastructure (persistence, external services), Presentation (API endpoints). Domain entities MUST be separate from persistence entities. Domain MUST have zero infrastructure dependencies.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### VII. Distributed System Resilience
+All operations MUST be idempotent. Services MUST implement retry with exponential backoff, circuit breaker, and timeouts. Graceful degradation MUST be supported. Correlation IDs MUST be propagated for observability.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### VIII. Result Pattern Over Exceptions
+Business validation errors MUST return Result types. Exceptions MUST be reserved for infrastructure failures only. API errors MUST follow RFC 9457 Problem Details format.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### IX. Database Standards
+PostgreSQL MUST use lowercase_snake_case naming. Entity separation (domain vs persistence) is mandatory. Read operations MUST use AsNoTracking(). Indexes MUST be created for WHERE/JOIN/ORDER BY clauses. Migrations MUST have Up and Down methods.
+
+### X. Testing Requirements
+Unit tests MUST cover domain logic and handlers. Integration tests MUST cover repositories and database operations. API tests MUST cover all endpoints. Contract tests MUST validate inter-service communication contracts. Minimum 70% code coverage required.
+
+### XI. CQRS & Event-Driven Architecture
+Commands and queries MUST be separated. Aggregates MUST have proper boundaries. Integration events MUST be defined for cross-service communication. Event contracts MUST use semantic versioning. Outbox pattern MUST be implemented for reliable event publishing.
+
+### XII. Data Consistency & Saga Patterns
+Services within single bounded context MUST use strong consistency. Ledger transactions MUST guarantee all debits equal credits. Outbox pattern MUST be implemented for future cross-service extensibility.
+
+## Quality Gates
+
+### Performance Thresholds
+- Write operations: <100ms (p95)
+- Read operations: <50ms (p95)
+- Complex operations (reports, invoicing): <2 seconds
+
+### Availability Standards
+- Service uptime: 99.9% minimum
+- Zero data loss for financial transactions
+- Multi-tenant data isolation: 100% (zero cross-tenant leakage)
+
+### Code Quality
+- No compiler warnings allowed
+- Nullable reference types enabled
+- Treat warnings as errors in builds
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices. Any architecture decision requiring exception to these principles MUST be documented in plan.md Complexity Tracking section with explicit justification.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+All pull requests MUST verify constitutional compliance before merge. Complexity requiring deviation from principles MUST be justified with simpler alternatives documented.
+
+**Version**: 1.0.0 | **Ratified**: 2026-02-08 | **Last Amended**: 2026-02-08
