@@ -1,0 +1,419 @@
+openapi: 3.0.3
+info:
+  title: Accounting Service - Invoices API
+  description: |
+    REST API for generating and retrieving invoices with flexible billing frequencies. 
+    Invoices are read models/projections generated on-demand from ledger entries.
+  version: 1.0.0
+  contact:
+    name: Accounting Service Team
+    email: accounting@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://api-staging.example.com/v1
+    description: Staging
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Invoices
+    description: Invoice generation and retrieval operations
+
+paths:
+  /invoices/generate:
+    post:
+      tags:
+        - Invoices
+      summary: Generate an invoice on-demand
+      description: |
+        Generates an invoice for an account with flexible billing frequency support:
+        - **PerRide**: One invoice per ride
+        - **Daily**: All rides in one day
+        - **Weekly**: All rides in one week
+        - **Monthly**: All rides in one month
+        
+        **Authorization**: Requires valid JWT with tenant context.
+        
+        **Immutability**: Once generated, invoices are read-only and cannot be modified.
+        
+        **Traceability**: Every invoice line item references specific ledger entry IDs.
+        
+        **Performance Target**: < 2 seconds for invoices with up to 1000 line items
+      operationId: generateInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateInvoiceRequest'
+            examples:
+              monthly:
+                summary: Monthly Invoice
+                value:
+                  accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  billingFrequency: "Monthly"
+                  billingPeriodStart: "2026-02-01"
+                  billingPeriodEnd: "2026-02-28"
+              perRide:
+                summary: Per-Ride Invoice
+                value:
+                  accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  billingFrequency: "PerRide"
+                  rideIds:
+                    - "RIDE-2026-02-06-001"
+              weekly:
+                summary: Weekly Invoice
+                value:
+                  accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  billingFrequency: "Weekly"
+                  billingPeriodStart: "2026-02-01"
+                  billingPeriodEnd: "2026-02-07"
+      responses:
+        '201':
+          description: Invoice generated successfully
+          headers:
+            Location:
+              description: URI of the generated invoice
+              schema:
+                type: string
+                example: /v1/invoices/9f8e7d6c-5b4a-4321-8765-4321abcd1234
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+              example:
+                invoiceId: "9f8e7d6c-5b4a-4321-8765-4321abcd1234"
+                invoiceNumber: "INV-2026-0042"
+                accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                accountName: "City Hospital"
+                billingPeriodStart: "2026-02-01"
+                billingPeriodEnd: "2026-02-28"
+                generatedAt: "2026-03-01T09:00:00Z"
+                currency: "USD"
+                lineItems:
+                  - lineItemId: "a1b2c3d4-e5f6-4a5b-9c8d-7e6f5a4b3c2d"
+                    rideId: "RIDE-2026-02-06-001"
+                    serviceDate: "2026-02-06"
+                    description: "Transportation service - Ride RIDE-2026-02-06-001"
+                    amount: 45.50
+                    ledgerEntryIds:
+                      - "7d8f9a2b-4c3e-4f1a-9b2f-8e7d6c5b4a3f"
+                      - "9e1f2a3b-5d4c-4e2f-1b3a-7f6e8d5c4b2a"
+                  - lineItemId: "b2c3d4e5-f6a7-4b5c-1d2e-8f7a6b5c4d3e"
+                    rideId: "RIDE-2026-02-15-003"
+                    serviceDate: "2026-02-15"
+                    description: "Transportation service - Ride RIDE-2026-02-15-003"
+                    amount: 62.75
+                    ledgerEntryIds:
+                      - "1a2b3c4d-5e6f-7a8b-9c1d-2e3f4a5b6c7d"
+                      - "2b3c4d5e-6f7a-8b9c-1d2e-3f4a5b6c7d8e"
+                subtotal: 108.25
+                totalPaymentsApplied: 50.00
+                outstandingBalance: 58.25
+                status: "Generated"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              examples:
+                invalidPeriod:
+                  summary: Invalid Billing Period
+                  value:
+                    type: "https://api.example.com/problems/validation-error"
+                    title: "Validation Error"
+                    status: 400
+                    detail: "Billing period start must be before end date"
+                    instance: "/v1/invoices/generate"
+                    errors:
+                      billingPeriodEnd: ["Must be after start date"]
+                noCharges:
+                  summary: No Billable Items Found
+                  value:
+                    type: "https://api.example.com/problems/no-charges-found"
+                    title: "No Charges Found"
+                    status: 400
+                    detail: "No charges found for the specified billing period or ride IDs"
+                    instance: "/v1/invoices/generate"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Account not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://api.example.com/problems/account-not-found"
+                title: "Account Not Found"
+                status: 404
+                detail: "Account with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 not found"
+                instance: "/v1/invoices/generate"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /invoices/{invoiceId}:
+    get:
+      tags:
+        - Invoices
+      summary: Retrieve an invoice by ID
+      description: |
+        Retrieves a previously generated invoice with all line items and traceability information.
+        
+        **Authorization**: Requires valid JWT with tenant context.
+        
+        **Tenant Isolation**: Only returns invoices belonging to authenticated tenant.
+      operationId: getInvoice
+      parameters:
+        - $ref: '#/components/parameters/InvoiceId'
+      responses:
+        '200':
+          description: Invoice found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Invoice not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://api.example.com/problems/invoice-not-found"
+                title: "Invoice Not Found"
+                status: 404
+                detail: "Invoice with ID 9f8e7d6c-5b4a-4321-8765-4321abcd1234 not found"
+                instance: "/v1/invoices/9f8e7d6c-5b4a-4321-8765-4321abcd1234"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token containing tenant ID and user context in claims
+
+  parameters:
+    InvoiceId:
+      name: invoiceId
+      in: path
+      required: true
+      description: Unique identifier for the invoice (UUID format)
+      schema:
+        type: string
+        format: uuid
+      example: "9f8e7d6c-5b4a-4321-8765-4321abcd1234"
+
+  schemas:
+    GenerateInvoiceRequest:
+      type: object
+      required:
+        - accountId
+        - billingFrequency
+      properties:
+        accountId:
+          type: string
+          format: uuid
+          description: Account to generate invoice for
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        billingFrequency:
+          type: string
+          enum: [PerRide, Daily, Weekly, Monthly]
+          description: Billing frequency determines how charges are grouped
+          example: "Monthly"
+        billingPeriodStart:
+          type: string
+          format: date
+          description: Start date of billing period (required for Daily, Weekly, Monthly)
+          example: "2026-02-01"
+        billingPeriodEnd:
+          type: string
+          format: date
+          description: End date of billing period (required for Daily, Weekly, Monthly)
+          example: "2026-02-28"
+        rideIds:
+          type: array
+          items:
+            type: string
+          description: Specific ride IDs to include (required for PerRide)
+          minItems: 1
+          example:
+            - "RIDE-2026-02-06-001"
+            - "RIDE-2026-02-15-003"
+
+    InvoiceResponse:
+      type: object
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+          description: Unique identifier for the invoice
+          example: "9f8e7d6c-5b4a-4321-8765-4321abcd1234"
+        invoiceNumber:
+          type: string
+          description: Human-readable invoice number (unique per tenant)
+          example: "INV-2026-0042"
+        accountId:
+          type: string
+          format: uuid
+          description: Account the invoice belongs to
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        accountName:
+          type: string
+          description: Name of the account for display purposes
+          example: "City Hospital"
+        billingPeriodStart:
+          type: string
+          format: date
+          description: Start date of the billing period
+          example: "2026-02-01"
+        billingPeriodEnd:
+          type: string
+          format: date
+          description: End date of the billing period
+          example: "2026-02-28"
+        generatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when invoice was generated (UTC)
+          example: "2026-03-01T09:00:00Z"
+        currency:
+          type: string
+          description: Currency code (always USD in v1.0)
+          example: "USD"
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceLineItem'
+          description: Charges included in this invoice
+          minItems: 1
+        subtotal:
+          type: number
+          format: decimal
+          description: Sum of all line item amounts
+          example: 108.25
+        totalPaymentsApplied:
+          type: number
+          format: decimal
+          description: Total payments applied during the billing period
+          example: 50.00
+        outstandingBalance:
+          type: number
+          format: decimal
+          description: Amount due (subtotal - payments applied)
+          example: 58.25
+        status:
+          type: string
+          enum: [Generated, Voided]
+          description: Invoice status (always Generated in v1.0; Voided reserved for future)
+          example: "Generated"
+
+    InvoiceLineItem:
+      type: object
+      properties:
+        lineItemId:
+          type: string
+          format: uuid
+          description: Unique identifier for the line item
+          example: "a1b2c3d4-e5f6-4a5b-9c8d-7e6f5a4b3c2d"
+        rideId:
+          type: string
+          description: Ride identifier for this charge
+          example: "RIDE-2026-02-06-001"
+        serviceDate:
+          type: string
+          format: date
+          description: Date when the ride service was provided
+          example: "2026-02-06"
+        description:
+          type: string
+          description: Human-readable description of the charge
+          example: "Transportation service - Ride RIDE-2026-02-06-001"
+        amount:
+          type: number
+          format: decimal
+          description: Charge amount for this ride
+          example: 45.50
+        ledgerEntryIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of ledger entries for traceability (debit + credit)
+          minItems: 2
+          maxItems: 2
+          example:
+            - "7d8f9a2b-4c3e-4f1a-9b2f-8e7d6c5b4a3f"
+            - "9e1f2a3b-5d4c-4e2f-1b3a-7f6e8d5c4b2a"
+
+    ProblemDetails:
+      type: object
+      description: RFC 9457 Problem Details for HTTP APIs
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI reference identifying the problem type
+          example: "https://api.example.com/problems/validation-error"
+        title:
+          type: string
+          description: Short, human-readable summary of the problem
+          example: "Validation Error"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+          example: "Billing period start must be before end date"
+        instance:
+          type: string
+          format: uri
+          description: URI reference identifying the specific occurrence
+          example: "/v1/invoices/generate"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Validation errors by field
+          example:
+            billingPeriodEnd: ["Must be after start date"]
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - missing or invalid JWT token
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://api.example.com/problems/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "Valid JWT token required"
+            instance: "/v1/invoices/generate"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://api.example.com/problems/internal-server-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "An unexpected error occurred while processing your request"
+            instance: "/v1/invoices/generate"

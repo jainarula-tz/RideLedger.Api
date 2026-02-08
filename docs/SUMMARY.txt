@@ -1,0 +1,318 @@
+================================================================================
+FEATURE SUMMARY: DUAL-ENTRY ACCOUNTING & INVOICING SERVICE
+================================================================================
+
+Feature Branch: backend-api
+Created: 2026-02-06
+Status: Specification Complete - Ready for Implementation
+
+================================================================================
+WHAT IS THIS FEATURE?
+================================================================================
+
+This feature implements a financial system of record that tracks all billable 
+ride services using professional double-entry accounting principles. It 
+maintains an immutable financial ledger, calculates account balances, and 
+generates invoices with flexible billing frequencies.
+
+Think of it as the "accounting department" for the ride service platform - 
+it records every charge and payment, keeps track of who owes what, and creates 
+bills for customers.
+
+================================================================================
+KEY CAPABILITIES
+================================================================================
+
+1. ACCOUNT MANAGEMENT
+   - Create accounts for organizations (hospitals, rehab centers) and 
+     individuals (passengers, guardians)
+   - Each account has its own ledger and balance
+   - Support for active/inactive account statuses
+
+2. CHARGE RECORDING (Double-Entry Accounting)
+   - Record ride charges after rides are completed
+   - Every charge creates TWO ledger entries that balance:
+     * Debit: Accounts Receivable (what customer owes)
+     * Credit: Service Revenue (what we earned)
+   - Prevents duplicate charges for the same ride
+
+3. PAYMENT RECORDING
+   - Record payments when received from customers
+   - Creates balanced ledger entries:
+     * Debit: Cash/Bank (money received)
+     * Credit: Accounts Receivable (reduces what customer owes)
+   - Supports partial payments, full payments, and overpayments
+
+4. BALANCE CALCULATION
+   - Real-time balance calculation: Balance = Total Debits - Total Credits
+   - Shows exactly how much each account owes at any moment
+   - Negative balance = customer has credit (paid more than owed)
+
+5. INVOICE GENERATION
+   - Generate invoices on-demand with four billing options:
+     * Per Ride: One invoice per ride
+     * Daily: All rides in one day
+     * Weekly: All rides in one week
+     * Monthly: All rides in one month
+   - Invoices show: rides taken, fare amounts, payments applied, balance due
+   - Every invoice line can be traced back to ledger entries
+
+6. ACCOUNT STATEMENTS
+   - Generate statements for any date range
+   - Shows: opening balance, all transactions, closing balance
+   - Provides complete transaction history for reconciliation
+
+================================================================================
+WHO USES THIS?
+================================================================================
+
+PRIMARY USERS:
+- System Integrator: Automated system posting ride charges and payments
+- Billing Administrator: Generating invoices and reviewing balances
+- Accounting Team: Reviewing ledgers and financial records
+- Customers: Receiving invoices and statements (indirectly)
+
+================================================================================
+USER STORIES (PRIORITIZED FOR DELIVERY)
+================================================================================
+
+PRIORITY 1 - MVP FOUNDATION (Must Have First):
+1. Record Ride Charges
+   - Post completed ride charges to account ledgers
+   - Foundation for all other financial tracking
+
+2. Calculate Account Balances
+   - View current outstanding balance for any account
+   - Essential for understanding financial position
+
+PRIORITY 2 - COMPLETE FINANCIAL CYCLE (Needed Soon):
+3. Record Payments
+   - Track payments received from customers
+   - Reduces account receivables balance
+
+4. Generate Invoices
+   - Create customer bills with flexible frequencies
+   - Enables payment collection
+
+PRIORITY 3 - MANAGEMENT & TRANSPARENCY (Nice to Have):
+5. Create and Manage Accounts
+   - Set up new financial entities
+   - Can be done via setup scripts initially
+
+6. Generate Account Statements
+   - Provide detailed transaction history
+   - Useful for reconciliation and transparency
+
+================================================================================
+KEY BUSINESS RULES
+================================================================================
+
+DOUBLE-ENTRY ACCOUNTING (Non-Negotiable):
+- Every transaction creates exactly TWO ledger entries
+- Total debits MUST always equal total credits
+- This ensures accounting accuracy and prevents errors
+
+IMMUTABILITY (Non-Negotiable):
+- Once a ledger entry is created, it CANNOT be modified or deleted
+- Provides complete audit trail
+- Build trust and regulatory compliance
+
+IDEMPOTENCY (Non-Negotiable):
+- Same ride cannot be charged twice to same account
+- Same payment reference cannot be recorded twice
+- Prevents duplicate financial records
+
+MULTI-TENANT ISOLATION (Non-Negotiable):
+- Each tenant's financial data is completely separate
+- No cross-tenant data leakage allowed
+- Ensures data privacy and security
+
+CURRENCY:
+- USD only (no currency conversion in v1.0)
+- All amounts use fixed-point arithmetic (no rounding errors)
+
+================================================================================
+SUCCESS METRICS (HOW WE MEASURE SUCCESS)
+================================================================================
+
+ACCURACY:
+✓ 100% ledger accuracy - no balance discrepancies
+✓ Zero duplicate charge incidents
+
+PERFORMANCE:
+✓ Record charges in under 100 milliseconds
+✓ Generate invoices in under 2 seconds
+✓ Calculate balances in under 50 milliseconds
+
+TRACEABILITY:
+✓ 100% ledger-to-invoice traceability
+✓ Every invoice line references specific ledger entries
+
+SECURITY:
+✓ Zero tenant data leakage incidents
+✓ Complete multi-tenant isolation
+
+SCALE:
+✓ Support 10,000+ accounts per tenant
+✓ Handle 1,000+ concurrent transactions
+
+================================================================================
+WHAT'S INCLUDED (IN SCOPE)
+================================================================================
+
+✓ Dual-entry ledger engine
+✓ Account creation and management
+✓ Ride charge recording with duplicate prevention
+✓ Payment recording (partial, full, overpayments)
+✓ Real-time balance calculation
+✓ On-demand invoice generation (4 billing frequencies)
+✓ Account statement generation
+✓ Multi-tenant data isolation
+✓ Complete audit trail for all transactions
+✓ Fixed-point monetary calculations
+
+================================================================================
+WHAT'S NOT INCLUDED (OUT OF SCOPE)
+================================================================================
+
+✗ Ride lifecycle management (creating/tracking rides)
+✗ Fare calculation logic (pricing rules)
+✗ Payment gateway integration (processing credit cards)
+✗ Tax handling (GST, VAT calculations)
+✗ Manual adjustments or credits
+✗ Fleet payouts to drivers
+✗ Currency conversion or multi-currency
+✗ Financial reporting dashboards
+✗ Accounts payable (paying vendors)
+✗ Budget management or forecasting
+✗ ERP system integration
+
+================================================================================
+KEY TECHNICAL DECISIONS
+================================================================================
+
+DATABASE:
+- Immutable, append-only ledger entries
+- Strong consistency required (debits = credits always)
+- All dates stored in UTC to avoid timezone issues
+
+EXTERNAL DEPENDENCIES:
+- Ride Management Service (provides ride completion data)
+- Payment Gateway Service (notifies when payments received)
+- User Management Service (provides account information)
+- Authentication Service (provides tenant ID and user context)
+
+PERFORMANCE REQUIREMENTS:
+- Write operations: <100ms latency (p95)
+- Read operations: <50ms latency (p95)
+- Invoice generation: <2 seconds
+- Support 1,000 concurrent operations
+
+================================================================================
+EXAMPLE WORKFLOW
+================================================================================
+
+SCENARIO: Organization completes a ride and pays for it
+
+1. RIDE COMPLETES
+   ↓
+   Ride Management Service calculates fare: $50.00
+   ↓
+   
+2. RECORD CHARGE
+   ↓
+   Accounting Service creates ledger entries:
+   - Debit: Accounts Receivable +$50.00
+   - Credit: Service Revenue +$50.00
+   ↓
+   Account Balance: $50.00 (amount owed)
+   ↓
+
+3. GENERATE INVOICE
+   ↓
+   Billing Admin requests monthly invoice
+   ↓
+   Invoice shows: 1 ride, $50.00 due
+   ↓
+
+4. PAYMENT RECEIVED
+   ↓
+   Payment Gateway confirms $50.00 received
+   ↓
+   Accounting Service creates ledger entries:
+   - Debit: Cash/Bank +$50.00
+   - Credit: Accounts Receivable -$50.00
+   ↓
+   Account Balance: $0.00 (fully paid)
+
+================================================================================
+EDGE CASES HANDLED
+================================================================================
+
+✓ Concurrent transactions to same account
+✓ Duplicate ride or payment submission
+✓ Zero or negative amount validation
+✓ Transactions on inactive accounts
+✓ Large transaction volumes (thousands of rides)
+✓ Time zone handling across regions
+✓ Overpayments and credit balances
+
+================================================================================
+DEVELOPMENT APPROACH
+================================================================================
+
+The specification is designed for INCREMENTAL DELIVERY:
+
+PHASE 1 (MVP): Priority 1 stories
+- Deliver charge recording and balance calculation
+- This alone provides value (financial tracking starts)
+
+PHASE 2: Priority 2 stories  
+- Add payment recording and invoice generation
+- Completes the financial cycle
+
+PHASE 3: Priority 3 stories
+- Add account management and statements
+- Enhances usability and transparency
+
+Each phase delivers working, testable functionality that can be deployed 
+independently.
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. TECHNICAL PLANNING (Use: /speckit.plan)
+   - Define architecture and technology choices
+   - Design data models and database schema
+   - Create API contracts
+   - Break down into implementation tasks
+
+2. OPTIONAL CLARIFICATION (Use: /speckit.clarify)
+   - Currently not needed (zero unclear items)
+   - Can be used if stakeholders have questions
+
+3. REVIEW & APPROVAL
+   - Share this summary with stakeholders
+   - Get sign-off on scope and priorities
+   - Commit specification to repository
+
+================================================================================
+QUESTIONS OR NEED MORE DETAILS?
+================================================================================
+
+Full Specification: specs/001-accounting-invoicing/spec.md
+Quality Checklist: specs/001-accounting-invoicing/checklists/requirements.md
+
+The full specification contains:
+- Detailed acceptance scenarios for each user story
+- Complete functional requirements (25 items)
+- All edge cases and error handling
+- Non-functional requirements (performance, security)
+- Complete assumptions and dependencies
+
+Contact the product team or development lead for clarification.
+
+================================================================================
+END OF SUMMARY
+================================================================================

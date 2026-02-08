@@ -1,0 +1,284 @@
+openapi: 3.0.3
+info:
+  title: Accounting Service - Charges API
+  description: |
+    REST API for recording ride service charges to account ledgers. 
+    Implements double-entry accounting with idempotency guarantees.
+  version: 1.0.0
+  contact:
+    name: Accounting Service Team
+    email: accounting@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://api-staging.example.com/v1
+    description: Staging
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Charges
+    description: Ride charge recording operations
+
+paths:
+  /charges:
+    post:
+      tags:
+        - Charges
+      summary: Record a ride charge
+      description: |
+        Records a completed ride charge to an account's ledger using double-entry accounting. 
+        Creates two ledger entries:
+        - Debit: Accounts Receivable (increases what customer owes)
+        - Credit: Service Revenue (records earned revenue)
+        
+        **Authorization**: Requires valid JWT with tenant context.
+        
+        **Idempotency**: Uses Ride ID as natural idempotency key. Duplicate submissions for same Ride ID + Account ID will be rejected with 409 Conflict.
+        
+        **Tenant Isolation**: Charges are automatically associated with tenant from JWT claims.
+        
+        **Performance Target**: p95 latency < 100ms
+      operationId: recordCharge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordChargeRequest'
+            example:
+              rideId: "RIDE-2026-02-06-001"
+              accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+              amount: 45.50
+              serviceDate: "2026-02-06T14:30:00Z"
+              fleetId: "FLEET-NORTH"
+      responses:
+        '201':
+          description: Charge recorded successfully
+          headers:
+            Location:
+              description: URI to query the account balance
+              schema:
+                type: string
+                example: /v1/accounts/3fa85f64-5717-4562-b3fc-2c963f66afa6
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordChargeResponse'
+              example:
+                rideId: "RIDE-2026-02-06-001"
+                accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                amount: 45.50
+                newBalance: 145.50
+                ledgerEntryIds:
+                  - "7d8f9a2b-4c3e-4f1a-9b2f-8e7d6c5b4a3f"
+                  - "9e1f2a3b-5d4c-4e2f-1b3a-7f6e8d5c4b2a"
+                recordedAt: "2026-02-06T14:30:15Z"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              examples:
+                invalidAmount:
+                  summary: Invalid Amount
+                  value:
+                    type: "https://api.example.com/problems/validation-error"
+                    title: "Validation Error"
+                    status: 400
+                    detail: "Amount must be greater than zero"
+                    instance: "/v1/charges"
+                    errors:
+                      amount: ["Must be greater than zero"]
+                accountInactive:
+                  summary: Account Inactive
+                  value:
+                    type: "https://api.example.com/problems/account-inactive"
+                    title: "Account Inactive"
+                    status: 400
+                    detail: "Cannot record charges to inactive account"
+                    instance: "/v1/charges"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Account not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://api.example.com/problems/account-not-found"
+                title: "Account Not Found"
+                status: 404
+                detail: "Account with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 not found"
+                instance: "/v1/charges"
+        '409':
+          description: Conflict - duplicate charge (idempotency violation)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://api.example.com/problems/duplicate-charge"
+                title: "Duplicate Charge"
+                status: 409
+                detail: "Charge for ride RIDE-2026-02-06-001 already recorded for this account"
+                instance: "/v1/charges"
+                existingLedgerEntryIds:
+                  - "7d8f9a2b-4c3e-4f1a-9b2f-8e7d6c5b4a3f"
+                  - "9e1f2a3b-5d4c-4e2f-1b3a-7f6e8d5c4b2a"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token containing tenant ID and user context in claims
+
+  schemas:
+    RecordChargeRequest:
+      type: object
+      required:
+        - rideId
+        - accountId
+        - amount
+        - serviceDate
+        - fleetId
+      properties:
+        rideId:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Unique identifier for the ride (natural idempotency key)
+          example: "RIDE-2026-02-06-001"
+        accountId:
+          type: string
+          format: uuid
+          description: Account to charge
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 999999999999999.9999
+          description: Fare amount in USD (must be positive)
+          example: 45.50
+        serviceDate:
+          type: string
+          format: date-time
+          description: Date and time when the ride service was provided (UTC)
+          example: "2026-02-06T14:30:00Z"
+        fleetId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Fleet identifier (stored in ledger metadata)
+          example: "FLEET-NORTH"
+
+    RecordChargeResponse:
+      type: object
+      properties:
+        rideId:
+          type: string
+          description: Ride identifier that was charged
+          example: "RIDE-2026-02-06-001"
+        accountId:
+          type: string
+          format: uuid
+          description: Account that was charged
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        amount:
+          type: number
+          format: decimal
+          description: Amount that was charged
+          example: 45.50
+        newBalance:
+          type: number
+          format: decimal
+          description: Account balance after charge was recorded
+          example: 145.50
+        ledgerEntryIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of the two ledger entries created (debit + credit)
+          minItems: 2
+          maxItems: 2
+          example:
+            - "7d8f9a2b-4c3e-4f1a-9b2f-8e7d6c5b4a3f"
+            - "9e1f2a3b-5d4c-4e2f-1b3a-7f6e8d5c4b2a"
+        recordedAt:
+          type: string
+          format: date-time
+          description: Timestamp when charge was recorded (UTC)
+          example: "2026-02-06T14:30:15Z"
+
+    ProblemDetails:
+      type: object
+      description: RFC 9457 Problem Details for HTTP APIs
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI reference identifying the problem type
+          example: "https://api.example.com/problems/validation-error"
+        title:
+          type: string
+          description: Short, human-readable summary of the problem
+          example: "Validation Error"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+          example: "Amount must be greater than zero"
+        instance:
+          type: string
+          format: uri
+          description: URI reference identifying the specific occurrence
+          example: "/v1/charges"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Validation errors by field
+          example:
+            amount: ["Must be greater than zero"]
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - missing or invalid JWT token
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://api.example.com/problems/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "Valid JWT token required"
+            instance: "/v1/charges"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://api.example.com/problems/internal-server-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "An unexpected error occurred while processing your request"
+            instance: "/v1/charges"

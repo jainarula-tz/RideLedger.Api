@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: Accounting Service - Accounts API
+  description: |
+    REST API for managing accounts in the dual-entry accounting system. 
+    Accounts represent financially responsible entities (organizations or individuals) that own ledger entries and invoices.
+  version: 1.0.0
+  contact:
+    name: Accounting Service Team
+    email: accounting@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://api-staging.example.com/v1
+    description: Staging
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Accounts
+    description: Account management operations
+
+paths:
+  /accounts:
+    post:
+      tags:
+        - Accounts
+      summary: Create a new account
+      description: |
+        Creates a new account for an organization or individual. Each account initializes with an empty ledger and zero balance.
+        
+        **Authorization**: Requires valid JWT with tenant context.
+        
+        **Idempotency**: Not idempotent. Creating multiple accounts with same data will create duplicates (unique by ID).
+        
+        **Tenant Isolation**: Account is automatically associated with tenant from JWT claims.
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+            examples:
+              organization:
+                summary: Organization Account
+                value:
+                  accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  name: "City Hospital"
+                  type: "Organization"
+              individual:
+                summary: Individual Account
+                value:
+                  accountId: "7ba45f21-9847-4123-a1fc-8d741e22bfa9"
+                  name: "John Doe"
+                  type: "Individual"
+      responses:
+        '201':
+          description: Account created successfully
+          headers:
+            Location:
+              description: URI of the created account
+              schema:
+                type: string
+                example: /v1/accounts/3fa85f64-5717-4562-b3fc-2c963f66afa6
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              examples:
+                invalidType:
+                  summary: Invalid Account Type
+                  value:
+                    type: "https://api.example.com/problems/validation-error"
+                    title: "Validation Error"
+                    status: 400
+                    detail: "Account type must be 'Organization' or 'Individual'"
+                    instance: "/v1/accounts"
+                    errors:
+                      type: ["Invalid account type value"]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflict - account with this ID already exists
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://api.example.com/problems/duplicate-account"
+                title: "Duplicate Account"
+                status: 409
+                detail: "Account with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 already exists"
+                instance: "/v1/accounts"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /accounts/{accountId}:
+    get:
+      tags:
+        - Accounts
+      summary: Get account details
+      description: |
+        Retrieves account details including current balance and ledger summary.
+        
+        **Authorization**: Requires valid JWT with tenant context.
+        
+        **Tenant Isolation**: Only returns accounts belonging to authenticated tenant.
+        
+        **Performance**: Balance is calculated in real-time from ledger entries.
+      operationId: getAccount
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: Account found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailResponse'
+              example:
+                accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                name: "City Hospital"
+                type: "Organization"
+                status: "Active"
+                currentBalance: 1250.50
+                currency: "USD"
+                createdAt: "2026-01-15T10:30:00Z"
+                updatedAt: "2026-02-01T14:25:00Z"
+                ledgerSummary:
+                  totalCharges: 2500.00
+                  totalPayments: 1249.50
+                  entryCount: 42
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Account not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: "https://api.example.com/problems/account-not-found"
+                title: "Account Not Found"
+                status: 404
+                detail: "Account with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 not found or does not belong to your tenant"
+                instance: "/v1/accounts/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token containing tenant ID and user context in claims
+
+  parameters:
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      description: Unique identifier for the account (UUID format)
+      schema:
+        type: string
+        format: uuid
+      example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+
+  schemas:
+    CreateAccountRequest:
+      type: object
+      required:
+        - accountId
+        - name
+        - type
+      properties:
+        accountId:
+          type: string
+          format: uuid
+          description: Client-generated unique identifier for the account
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the organization or individual
+          example: "City Hospital"
+        type:
+          type: string
+          enum: [Organization, Individual]
+          description: Type of account
+          example: "Organization"
+
+    AccountResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+          format: uuid
+          description: Unique identifier for the account
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        name:
+          type: string
+          description: Name of the account
+          example: "City Hospital"
+        type:
+          type: string
+          enum: [Organization, Individual]
+          description: Type of account
+          example: "Organization"
+        status:
+          type: string
+          enum: [Active, Inactive]
+          description: Current status of the account
+          example: "Active"
+        currency:
+          type: string
+          description: Currency code (always USD in v1.0)
+          example: "USD"
+        currentBalance:
+          type: number
+          format: decimal
+          description: Current outstanding balance in USD (calculated in real-time)
+          example: 0.00
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when account was created (UTC)
+          example: "2026-02-06T10:30:00Z"
+
+    AccountDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/AccountResponse'
+        - type: object
+          properties:
+            updatedAt:
+              type: string
+              format: date-time
+              nullable: true
+              description: Timestamp when account was last updated (UTC)
+              example: "2026-02-06T14:25:00Z"
+            ledgerSummary:
+              type: object
+              description: Summary statistics of the ledger
+              properties:
+                totalCharges:
+                  type: number
+                  format: decimal
+                  description: Sum of all charges recorded
+                  example: 2500.00
+                totalPayments:
+                  type: number
+                  format: decimal
+                  description: Sum of all payments recorded
+                  example: 1249.50
+                entryCount:
+                  type: integer
+                  description: Total number of ledger entries
+                  example: 42
+
+    ProblemDetails:
+      type: object
+      description: RFC 9457 Problem Details for HTTP APIs
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI reference identifying the problem type
+          example: "https://api.example.com/problems/validation-error"
+        title:
+          type: string
+          description: Short, human-readable summary of the problem
+          example: "Validation Error"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+          example: "Account type must be 'Organization' or 'Individual'"
+        instance:
+          type: string
+          format: uri
+          description: URI reference identifying the specific occurrence
+          example: "/v1/accounts"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Validation errors by field
+          example:
+            type: ["Invalid account type value"]
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - missing or invalid JWT token
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://api.example.com/problems/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "Valid JWT token required"
+            instance: "/v1/accounts"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://api.example.com/problems/internal-server-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "An unexpected error occurred while processing your request"
+            instance: "/v1/accounts"
