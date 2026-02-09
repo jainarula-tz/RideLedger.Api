@@ -108,15 +108,8 @@ try
         });
     });
 
-    // Health Checks
-    builder.Services.AddHealthChecks()
-        .AddCheck<RideLedger.Presentation.HealthChecks.DatabaseHealthCheck>(
-            "database",
-            tags: new[] { "ready", "startup" })
-        .AddNpgSql(
-            builder.Configuration.GetConnectionString("DefaultConnection")!,
-            name: "postgresql",
-            tags: new[] { "ready", "startup" });
+    // Health Checks - Database health check is registered in Infrastructure layer
+    // Additional custom health checks can be added here if needed
 
     // CORS Configuration
     builder.Services.AddCors(options =>

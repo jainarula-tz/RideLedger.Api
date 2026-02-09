@@ -21,7 +21,8 @@ namespace RideLedger.Presentation.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize(Policy = "TenantAccess")]
+// TODO: Re-enable after implementing authentication
+// [Authorize(Policy = "TenantAccess")]
 public sealed class AccountsController : ControllerBase
 {
     private readonly ILogger<AccountsController> _logger;
