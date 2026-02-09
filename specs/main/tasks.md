@@ -129,7 +129,7 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T067 [US1] Create ChargesController at src/AccountingService.API/Controllers/ChargesController.cs with POST /api/v1/charges endpoint
 - [X] T068 [US1] Add EF Core migration "AddChargeSupport" with accounts, ledger_entries tables
 - [X] T069 [US1] Write unit test for Account.RecordCharge at tests/AccountingService.UnitTests/Domain/AccountTests.cs
-- [ ] T070 [US1] Write unit test for RecordChargeCommandHandler at tests/AccountingService.UnitTests/Handlers/RecordChargeCommandHandlerTests.cs
+- [X] T070 [US1] Write unit test for RecordChargeCommandHandler at tests/AccountingService.UnitTests/Handlers/RecordChargeCommandHandlerTests.cs
 - [ ] T071 [US1] Write integration test for POST /api/v1/charges at tests/AccountingService.IntegrationTests/Controllers/ChargesControllerTests.cs
 - [ ] T071a [US1] Write integration test verifying ledger entries include populated audit fields (source_type, source_reference_id, created_at, created_by from JWT)
 

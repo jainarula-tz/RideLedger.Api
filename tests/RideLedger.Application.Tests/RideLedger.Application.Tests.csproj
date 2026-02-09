@@ -9,13 +9,20 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NSubstitute" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\RideLedger.Application\RideLedger.Application.csproj" />
+    <ProjectReference Include="..\..\src\RideLedger.Domain\RideLedger.Domain.csproj" />
   </ItemGroup>
 
 </Project>
