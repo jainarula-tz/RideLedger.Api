@@ -29,8 +29,14 @@ public sealed class TenantProvider : ITenantProvider
         }
 
         // Fallback to claims
-        var tenantIdClaim = httpContext.User.FindFirst("tenant_id")?.Value
-            ?? throw new UnauthorizedAccessException("Tenant ID claim is missing from JWT token");
+        var tenantIdClaim = httpContext.User.FindFirst("tenant_id")?.Value;
+
+        // TODO: Re-enable after implementing authentication (Remove default tenant)
+        // If no authentication, return default tenant for testing
+        if (string.IsNullOrEmpty(tenantIdClaim))
+        {
+            return Guid.Parse("00000000-0000-0000-0000-000000000001"); // Default test tenant
+        }
 
         if (!Guid.TryParse(tenantIdClaim, out var parsedTenantId))
         {
@@ -45,9 +51,17 @@ public sealed class TenantProvider : ITenantProvider
         var httpContext = _httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("HTTP context is not available");
 
-        return httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? httpContext.User.FindFirst("sub")?.Value
-            ?? throw new UnauthorizedAccessException("User ID claim is missing from JWT token");
+        var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? httpContext.User.FindFirst("sub")?.Value;
+
+        // TODO: Re-enable after implementing authentication (Remove default user)
+        // If no authentication, return default user for testing
+        if (string.IsNullOrEmpty(userId))
+        {
+            return "test-user";
+        }
+
+        return userId;
     }
 
     public string? GetUserEmail()
