@@ -128,7 +128,7 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T066 [US1] Create RecordChargeResponse DTO at src/AccountingService.API/Models/RecordChargeResponse.cs
 - [X] T067 [US1] Create ChargesController at src/AccountingService.API/Controllers/ChargesController.cs with POST /api/v1/charges endpoint
 - [X] T068 [US1] Add EF Core migration "AddChargeSupport" with accounts, ledger_entries tables
-- [ ] T069 [US1] Write unit test for Account.RecordCharge at tests/AccountingService.UnitTests/Domain/AccountTests.cs
+- [X] T069 [US1] Write unit test for Account.RecordCharge at tests/AccountingService.UnitTests/Domain/AccountTests.cs
 - [ ] T070 [US1] Write unit test for RecordChargeCommandHandler at tests/AccountingService.UnitTests/Handlers/RecordChargeCommandHandlerTests.cs
 - [ ] T071 [US1] Write integration test for POST /api/v1/charges at tests/AccountingService.IntegrationTests/Controllers/ChargesControllerTests.cs
 - [ ] T071a [US1] Write integration test verifying ledger entries include populated audit fields (source_type, source_reference_id, created_at, created_by from JWT)
@@ -180,7 +180,7 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T087 [US3] Create RecordPaymentRequest DTO at src/AccountingService.API/Models/RecordPaymentRequest.cs
 - [X] T088 [US3] Create RecordPaymentResponse DTO at src/AccountingService.API/Models/RecordPaymentResponse.cs
 - [X] T089 [US3] Create PaymentsController with POST /api/v1/payments endpoint
-- [ ] T090 [US3] Write unit tests for Account.RecordPayment covering full payment, partial, overpayment scenarios
+- [X] T090 [US3] Write unit tests for Account.RecordPayment covering full payment, partial, overpayment scenarios
 - [ ] T091 [US3] Write integration test for POST /api/v1/payments endpoint
 - [ ] T092 [US3] Write integration test verifying idempotency with duplicate Payment Reference ID
 
@@ -249,8 +249,8 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T121 [US5] Create CreateAccountRequest DTO at src/AccountingService.API/Models/CreateAccountRequest.cs
 - [X] T122 [US5] Create AccountResponse DTO at src/AccountingService.API/Models/AccountResponse.cs
 - [X] T123 [US5] Create AccountsController with POST /api/v1/accounts and GET /api/v1/accounts/{id} endpoints
-- [ ] T124 [US5] Add unique index on accounts(account_id, tenant_id) in migration
-- [ ] T125 [US5] Write unit test for Account.Create factory method
+- [X] T124 [US5] Add unique index on accounts(account_id, tenant_id) in migration
+- [X] T125 [US5] Write unit test for Account.Create factory method
 - [ ] T126 [US5] Write integration test for POST /api/v1/accounts endpoint
 - [ ] T127 [US5] Write integration test for GET /api/v1/accounts/{id} endpoint
 
