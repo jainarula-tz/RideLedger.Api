@@ -64,12 +64,13 @@ public sealed class LedgerEntryEntityConfiguration : IEntityTypeConfiguration<Le
             .HasMaxLength(100);
 
         // Indexes for idempotency (prevent duplicate charges/payments)
-        builder.HasIndex(l => new { l.AccountId, l.SourceReferenceId })
+        // Allow both debit and credit entries for same transaction
+        builder.HasIndex(l => new { l.AccountId, l.SourceReferenceId, l.LedgerAccount })
             .IsUnique()
             .HasFilter("source_type = 'Ride'")
             .HasDatabaseName("ix_ledger_entries_ride_idempotency");
 
-        builder.HasIndex(l => l.SourceReferenceId)
+        builder.HasIndex(l => new { l.SourceReferenceId, l.LedgerAccount })
             .IsUnique()
             .HasFilter("source_type = 'Payment'")
             .HasDatabaseName("ix_ledger_entries_payment_idempotency");
