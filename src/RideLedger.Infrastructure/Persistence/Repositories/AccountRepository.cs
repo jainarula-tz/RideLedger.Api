@@ -1,6 +1,7 @@
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using RideLedger.Domain.Aggregates;
+using RideLedger.Domain.Enums;
 using RideLedger.Domain.Repositories;
 using RideLedger.Domain.ValueObjects;
 using RideLedger.Infrastructure.Persistence.Entities;
@@ -118,5 +119,56 @@ public sealed class AccountRepository : IAccountRepository
     {
         return await _context.Accounts
             .AnyAsync(a => a.AccountId == id.Value, cancellationToken);
+    }
+
+    public async Task<(List<Account> Accounts, int TotalCount)> SearchAsync(
+        string? searchTerm,
+        AccountType? type,
+        AccountStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        // Build query with filters
+        var query = _context.Accounts
+            .Include(a => a.LedgerEntries)
+            .AsQueryable();
+
+        // Apply search term filter (search in name or account ID)
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchTermLower = searchTerm.ToLower();
+            query = query.Where(a =>
+                a.Name.ToLower().Contains(searchTermLower) ||
+                a.AccountId.ToString().ToLower().Contains(searchTermLower));
+        }
+
+        // Apply type filter
+        if (type.HasValue)
+        {
+            query = query.Where(a => a.Type == type.Value);
+        }
+
+        // Apply status filter
+        if (status.HasValue)
+        {
+            query = query.Where(a => a.Status == status.Value);
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Apply pagination and ordering
+        var entities = await query
+            .OrderByDescending(a => a.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        // Map to domain
+        var accounts = entities.Select(e => _mapper.ToDomainWithEntries(e)).ToList();
+
+        return (accounts, totalCount);
     }
 }

@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using RideLedger.Application.Commands.Accounts;
 using RideLedger.Application.DTOs.Accounts;
 using RideLedger.Application.DTOs.Balances;
+using RideLedger.Application.DTOs.Transactions;
 using RideLedger.Application.Queries.Accounts;
 using RideLedger.Application.Queries.Balances;
+using RideLedger.Application.Queries.Transactions;
+using RideLedger.Domain.Enums;
 
 namespace RideLedger.Presentation.Controllers;
 
@@ -165,6 +168,132 @@ public sealed class AccountsController : ControllerBase
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Failed to Retrieve Balance",
                 Detail = error
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Gets account transactions with pagination
+    /// </summary>
+    /// <param name="id">Account ID</param>
+    /// <param name="startDate">Optional start date filter</param>
+    /// <param name="endDate">Optional end date filter</param>
+    /// <param name="page">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 50, max: 100)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated transactions</returns>
+    [HttpGet("{id:guid}/transactions")]
+    [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetTransactions(
+        [FromRoute] Guid id,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Retrieving transactions for account: {AccountId}, Page: {Page}, PageSize: {PageSize}",
+            id,
+            page,
+            pageSize);
+
+        // Validate pagination parameters
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 50;
+        if (pageSize > 100) pageSize = 100;
+
+        var query = new GetTransactionsQuery
+        {
+            AccountId = id,
+            StartDate = startDate,
+            EndDate = endDate,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        if (result.IsFailed)
+        {
+            var error = result.Errors.FirstOrDefault()?.Message ?? "Failed to retrieve transactions";
+
+            if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Account Not Found",
+                    Detail = error
+                });
+            }
+
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Failed to Retrieve Transactions",
+                Detail = error
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Searches accounts with filters
+    /// </summary>
+    /// <param name="searchTerm">Search term (searches in name and account ID)</param>
+    /// <param name="type">Optional account type filter</param>
+    /// <param name="status">Optional account status filter</param>
+    /// <param name="page">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 20, max: 100)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated search results</returns>
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(SearchAccountsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SearchAccounts(
+        [FromQuery] string? searchTerm,
+        [FromQuery] AccountType? type,
+        [FromQuery] AccountStatus? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Searching accounts: SearchTerm='{SearchTerm}', Type={Type}, Status={Status}, Page={Page}",
+            searchTerm,
+            type,
+            status,
+            page);
+
+        // Validate pagination parameters
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > 100) pageSize = 100;
+
+        var query = new SearchAccountsQuery
+        {
+            SearchTerm = searchTerm,
+            Type = type,
+            Status = status,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        if (result.IsFailed)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Search Failed",
+                Detail = result.Errors.FirstOrDefault()?.Message ?? "Failed to search accounts"
             });
         }
 

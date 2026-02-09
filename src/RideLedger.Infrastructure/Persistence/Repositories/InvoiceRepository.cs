@@ -1,6 +1,7 @@
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using RideLedger.Domain.Aggregates;
+using RideLedger.Domain.Enums;
 using RideLedger.Domain.Repositories;
 using RideLedger.Domain.ValueObjects;
 using RideLedger.Infrastructure.Persistence;
@@ -36,6 +37,16 @@ public sealed class InvoiceRepository : IInvoiceRepository
 
         var invoice = _mapper.ToDomain(entity);
         return Result.Ok(invoice);
+    }
+
+    public async Task<Invoice?> GetByIdWithLineItemsAsync(Guid invoiceId, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Invoices
+            .Include(i => i.LineItems)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == invoiceId, cancellationToken);
+
+        return entity == null ? null : _mapper.ToDomain(entity);
     }
 
     public async Task<Result<Invoice>> GetByInvoiceNumberAsync(string invoiceNumber, CancellationToken cancellationToken = default)
@@ -92,5 +103,59 @@ public sealed class InvoiceRepository : IInvoiceRepository
 
         var invoices = entities.Select(_mapper.ToDomain).ToList();
         return Result.Ok<IEnumerable<Invoice>>(invoices);
+    }
+
+    public async Task<(List<Invoice> Invoices, int TotalCount)> SearchAsync(
+        Guid? accountId,
+        InvoiceStatus? status,
+        DateTime? startDate,
+        DateTime? endDate,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        // Build query with filters
+        var query = _context.Invoices
+            .Include(i => i.LineItems)
+            .AsQueryable();
+
+        // Apply account filter
+        if (accountId.HasValue)
+        {
+            query = query.Where(i => i.AccountId == accountId.Value);
+        }
+
+        // Apply status filter
+        if (status.HasValue)
+        {
+            query = query.Where(i => i.Status == status.Value);
+        }
+
+        // Apply date range filter (on billing period)
+        if (startDate.HasValue)
+        {
+            query = query.Where(i => i.BillingPeriodStart >= startDate.Value.Date);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(i => i.BillingPeriodEnd <= endDate.Value.Date);
+        }
+
+        // Get total count
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Apply pagination and ordering
+        var entities = await query
+            .OrderByDescending(i => i.GeneratedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        // Map to domain
+        var invoices = entities.Select(_mapper.ToDomain).ToList();
+
+        return (invoices, totalCount);
     }
 }

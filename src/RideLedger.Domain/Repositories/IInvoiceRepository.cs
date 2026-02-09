@@ -1,5 +1,6 @@
 using FluentResults;
 using RideLedger.Domain.Aggregates;
+using RideLedger.Domain.Enums;
 using RideLedger.Domain.ValueObjects;
 
 namespace RideLedger.Domain.Repositories;
@@ -13,6 +14,11 @@ public interface IInvoiceRepository
     /// Gets an invoice by ID
     /// </summary>
     Task<Result<Invoice>> GetByIdAsync(Guid invoiceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets an invoice by ID with line items
+    /// </summary>
+    Task<Invoice?> GetByIdWithLineItemsAsync(Guid invoiceId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets an invoice by invoice number
@@ -33,4 +39,16 @@ public interface IInvoiceRepository
     /// Gets invoices for an account
     /// </summary>
     Task<Result<IEnumerable<Invoice>>> GetByAccountIdAsync(AccountId accountId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches invoices with filters and pagination
+    /// </summary>
+    Task<(List<Invoice> Invoices, int TotalCount)> SearchAsync(
+        Guid? accountId,
+        InvoiceStatus? status,
+        DateTime? startDate,
+        DateTime? endDate,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,6 @@
 using FluentResults;
 using RideLedger.Domain.Aggregates;
+using RideLedger.Domain.Enums;
 using RideLedger.Domain.ValueObjects;
 
 namespace RideLedger.Domain.Repositories;
@@ -33,4 +34,15 @@ public interface IAccountRepository
     /// Checks if account exists
     /// </summary>
     Task<bool> ExistsAsync(AccountId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches accounts with filters and pagination
+    /// </summary>
+    Task<(List<Account> Accounts, int TotalCount)> SearchAsync(
+        string? searchTerm,
+        AccountType? type,
+        AccountStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }
