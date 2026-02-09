@@ -251,8 +251,8 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T123 [US5] Create AccountsController with POST /api/v1/accounts and GET /api/v1/accounts/{id} endpoints
 - [X] T124 [US5] Add unique index on accounts(account_id, tenant_id) in migration
 - [X] T125 [US5] Write unit test for Account.Create factory method
-- [ ] T126 [US5] Write integration test for POST /api/v1/accounts endpoint
-- [ ] T127 [US5] Write integration test for GET /api/v1/accounts/{id} endpoint
+- [X] T126 [US5] Write integration test for POST /api/v1/accounts endpoint
+- [X] T127 [US5] Write integration test for GET /api/v1/accounts/{id} endpoint
 
 ---
 
