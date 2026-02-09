@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using RideLedger.Infrastructure.Persistence;
 
@@ -20,33 +21,30 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     private const string TestSecretKey = "TestSecretKeyForJwtTokenGeneration_MustBe32Chars!!!";
     private const string TestIssuer = "RideLedger.Test";
     private const string TestAudience = "RideLedger.API.Test";
+    
+    // Unique database name per factory instance so tests can share data within the same test
+    private readonly string _databaseName = $"TestDatabase_{Guid.NewGuid()}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Set test environment
         builder.UseEnvironment("Testing");
 
-        // Add test configuration settings BEFORE host is built
-        builder.UseSetting("ConnectionStrings:DefaultConnection", 
-            "Host=localhost;Database=testdb;Username=test;Password=test");
+        // Configure to use in-memory database for tests
+        builder.UseSetting("UseInMemoryDatabase", "true");
+        builder.UseSetting("InMemoryDatabaseName", _databaseName);
+        builder.UseSetting("ConnectionStrings:DefaultConnection", "InMemory");
 
         builder.ConfigureTestServices(services =>
         {
-            // Remove the existing DbContext configuration
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AccountingDbContext>));
-
-            if (descriptor != null)
+            // Ensure the database is created
+            var sp = services.BuildServiceProvider();
+            using (var scope = sp.CreateScope())
             {
-                services.Remove(descriptor);
+                var db = scope.ServiceProvider.GetRequiredService<AccountingDbContext>();
+                db.Database.EnsureCreated();
             }
-
-            // Add in-memory database for testing
-            services.AddDbContext<AccountingDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("TestDatabase_" + Guid.NewGuid());
-            });
-
+            
             // Configure JWT authentication with test settings
             services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -62,15 +60,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                     ClockSkew = TimeSpan.Zero
                 };
             });
-
-            // Build the service provider and create database
-            var serviceProvider = services.BuildServiceProvider();
-            using var scope = serviceProvider.CreateScope();
-            var scopedServices = scope.ServiceProvider;
-            var db = scopedServices.GetRequiredService<AccountingDbContext>();
-
-            // Ensure database is created
-            db.Database.EnsureCreated();
         });
     }
 }

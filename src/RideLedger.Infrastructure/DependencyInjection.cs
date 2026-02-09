@@ -8,6 +8,7 @@ using RideLedger.Infrastructure.Authentication;
 using RideLedger.Infrastructure.Persistence;
 using RideLedger.Infrastructure.Persistence.Repositories;
 using RideLedger.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore.InMemory;
 
 namespace RideLedger.Infrastructure;
 
@@ -21,21 +22,39 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Database Context
-        services.AddDbContext<AccountingDbContext>((serviceProvider, options) =>
+        // Database Context - Use InMemory for testing, PostgreSQL for production
+        var useInMemoryDatabase = configuration["UseInMemoryDatabase"] == "true" || 
+                                  configuration["UseInMemoryDatabase"] ==  "True";
+        
+        if (useInMemoryDatabase)
         {
-            options.UseNpgsql(
-                configuration.GetConnectionString("PostgreSQL"),
-                npgsqlOptions =>
-                {
-                    npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
-                    npgsqlOptions.CommandTimeout(30);
-                    npgsqlOptions.MigrationsAssembly("RideLedger.Infrastructure");
-                });
+            // In-memory database for testing - use database name from configuration or default
+            var databaseName = configuration["InMemoryDatabaseName"] ?? $"TestDatabase_{Guid.NewGuid()}";
+            services.AddDbContext<AccountingDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(databaseName);
+                options.EnableSensitiveDataLogging(true);
+                options.EnableDetailedErrors(true);
+            });
+        }
+        else
+        {
+            // PostgreSQL database for production
+            services.AddDbContext<AccountingDbContext>((serviceProvider, options) =>
+            {
+                options.UseNpgsql(
+                    configuration.GetConnectionString("PostgreSQL"),
+                    npgsqlOptions =>
+                    {
+                        npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+                        npgsqlOptions.CommandTimeout(30);
+                        npgsqlOptions.MigrationsAssembly("RideLedger.Infrastructure");
+                    });
 
-            options.EnableSensitiveDataLogging(false);
-            options.EnableDetailedErrors(false);
-        });
+                options.EnableSensitiveDataLogging(false);
+                options.EnableDetailedErrors(false);
+            });
+        }
 
         // Tenant Provider
         services.AddScoped<ITenantProvider, TenantProvider>();
@@ -48,12 +67,20 @@ public static class DependencyInjection
         // Services
         services.AddScoped<IInvoiceNumberGenerator, InvoiceNumberGenerator>();
 
-        // Health Checks
-        services.AddHealthChecks()
-            .AddNpgSql(
-                configuration.GetConnectionString("PostgreSQL") ?? throw new InvalidOperationException("PostgreSQL connection string is missing"),
-                name: "postgresql",
-                tags: new[] { "db", "sql", "postgresql" });
+        // Health Checks - Only add PostgreSQL check if not using in-memory database
+        if (!useInMemoryDatabase)
+        {
+            services.AddHealthChecks()
+                .AddNpgSql(
+                    configuration.GetConnectionString("PostgreSQL") ?? throw new InvalidOperationException("PostgreSQL connection string is missing"),
+                    name: "postgresql",
+                    tags: new[] { "db", "sql", "postgresql" });
+        }
+        else
+        {
+            // Add a simple health check for testing
+            services.AddHealthChecks();
+        }
 
         return services;
     }

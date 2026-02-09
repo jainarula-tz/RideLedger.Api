@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RideLedger.Domain.Aggregates;
 using RideLedger.Domain.Repositories;
 using RideLedger.Domain.ValueObjects;
+using RideLedger.Infrastructure.Persistence.Entities;
 using RideLedger.Infrastructure.Persistence.Mappers;
 
 namespace RideLedger.Infrastructure.Persistence.Repositories;
@@ -48,7 +49,7 @@ public sealed class AccountRepository : IAccountRepository
         {
             var entity = _mapper.ToEntity(account);
             await _context.Accounts.AddAsync(entity, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
+            // Don't call SaveChangesAsync here - UnitOfWork handles it
             return Result.Ok();
         }
         catch (Exception ex)
@@ -61,9 +62,47 @@ public sealed class AccountRepository : IAccountRepository
     {
         try
         {
-            var entity = _mapper.ToEntity(account);
-            _context.Accounts.Update(entity);
-            await _context.SaveChangesAsync(cancellationToken);
+            // Load existing account entity with ledger entries (for tracking)
+            var existingEntity = await _context.Accounts
+                .Include(a => a.LedgerEntries)
+                .FirstOrDefaultAsync(a => a.AccountId == account.Id.Value, cancellationToken);
+
+            if (existingEntity == null)
+            {
+                return Result.Fail("Account not found");
+            }
+
+            // Update account properties
+            existingEntity.Name = account.Name;
+            existingEntity.Status = account.Status;
+            existingEntity.UpdatedAt = account.UpdatedAtUtc;
+
+            // Add only new ledger entries (ones not already in database)
+            var existingEntryIds = existingEntity.LedgerEntries.Select(e => e.LedgerEntryId).ToHashSet();
+            var newEntries = account.LedgerEntries
+                .Where(e => !existingEntryIds.Contains(e.Id))
+                .Select(e => new LedgerEntryEntity
+                {
+                    LedgerEntryId = e.Id,
+                    AccountId = account.Id.Value,
+                    LedgerAccount = e.LedgerAccount,
+                    DebitAmount = e.DebitAmount?.Amount,
+                    CreditAmount = e.CreditAmount?.Amount,
+                    Currency = e.DebitAmount?.Currency ?? e.CreditAmount?.Currency ?? "USD",
+                    SourceType = e.SourceType,
+                    SourceReferenceId = e.SourceReferenceId,
+                    TransactionDate = e.TransactionDate,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = string.Empty // TODO: Get from domain event or command
+                })
+                .ToList();
+
+            if (newEntries.Any())
+            {
+                await _context.LedgerEntries.AddRangeAsync(newEntries, cancellationToken);
+            }
+
+            // Don't call SaveChangesAsync here - UnitOfWork handles it
             return Result.Ok();
         }
         catch (Exception ex)

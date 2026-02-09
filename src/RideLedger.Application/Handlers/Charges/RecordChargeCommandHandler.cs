@@ -28,9 +28,9 @@ public sealed class RecordChargeCommandHandler : IRequestHandler<RecordChargeCom
 
     public async Task<Result<Guid>> Handle(RecordChargeCommand request, CancellationToken cancellationToken)
     {
-        // Load account aggregate
+        // Load account aggregate WITH ledger entries (needed for duplicate detection)
         var accountId = AccountId.Create(request.AccountId);
-        var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
+        var account = await _accountRepository.GetByIdWithLedgerEntriesAsync(accountId, cancellationToken);
 
         if (account is null)
         {
