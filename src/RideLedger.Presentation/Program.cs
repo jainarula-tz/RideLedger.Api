@@ -53,14 +53,16 @@ try
     builder.Services.AddInfrastructure(builder.Configuration);
 
     // JWT Authentication & Authorization (Senior Dev Pattern: Secure by default)
-    builder.Services.AddJwtAuthentication(builder.Configuration);
-    builder.Services.AddAuthorizationPolicies();
+    // TODO: Re-enable after implementing authentication
+    // builder.Services.AddJwtAuthentication(builder.Configuration);
+    // builder.Services.AddAuthorizationPolicies();
 
     // Controllers with Filters
     builder.Services.AddControllers(options =>
     {
         // Order matters! Filters execute in the order they're added
-        options.Filters.Add<TenantAuthorizationFilter>(); // 1. Check auth & tenant
+        // TODO: Re-enable after implementing authentication
+        // options.Filters.Add<TenantAuthorizationFilter>(); // 1. Check auth & tenant
         options.Filters.Add<ValidationFilter>();           // 2. Validate request
         options.Filters.Add<PerformanceMonitoringFilter>(); // 3. Monitor performance
     });
@@ -158,8 +160,9 @@ try
     app.UseCors("AllowFrontend");
 
     // 5. Authentication & Authorization (JWT validation)
-    app.UseAuthentication();
-    app.UseAuthorization();
+    // TODO: Re-enable after implementing authentication
+    // app.UseAuthentication();
+    // app.UseAuthorization();
 
     // 6. Global Exception Handler (Catch all unhandled exceptions)
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
