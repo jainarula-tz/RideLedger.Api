@@ -153,8 +153,8 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [ ] T075 [US2] Add composite index on ledger_entries(account_id, tenant_id) INCLUDE (debit_amount, credit_amount) in migration
 - [ ] T076 [US2] Create AccountBalanceResponse DTO at src/AccountingService.API/Models/AccountBalanceResponse.cs
 - [X] T077 [US2] Add GET /api/v1/accounts/{accountId}/balance endpoint to AccountsController
-- [ ] T078 [US2] Write unit test for GetAccountBalanceQueryHandler at tests/AccountingService.UnitTests/Handlers/GetAccountBalanceQueryHandlerTests.cs
-- [ ] T079 [US2] Write integration test for GET balance endpoint verifying calculation correctness
+- [X] T078 [US2] Write unit test for GetAccountBalanceQueryHandler at tests/AccountingService.UnitTests/Handlers/GetAccountBalanceQueryHandlerTests.cs
+- [X] T079 [US2] Write integration test for GET balance endpoint verifying calculation correctness
 - [ ] T080 [US2] Add performance test verifying p95 latency ≤ 50ms with 10,000 transactions
 
 ---
