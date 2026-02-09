@@ -89,6 +89,7 @@ public sealed class AccountRepository : IAccountRepository
                 {
                     LedgerEntryId = e.Id,
                     AccountId = account.Id.Value,
+                    TenantId = e.TenantId, // FIX: Set tenant ID from domain entity
                     LedgerAccount = e.LedgerAccount,
                     DebitAmount = e.DebitAmount?.Amount,
                     CreditAmount = e.CreditAmount?.Amount,
@@ -96,8 +97,8 @@ public sealed class AccountRepository : IAccountRepository
                     SourceType = e.SourceType,
                     SourceReferenceId = e.SourceReferenceId,
                     TransactionDate = e.TransactionDate,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = string.Empty // TODO: Get from domain event or command
+                    CreatedAt = e.CreatedAtUtc, // FIX: Use domain entity's creation time
+                    CreatedBy = e.CreatedBy // FIX: Use domain entity's creator
                 })
                 .ToList();
 
