@@ -42,11 +42,16 @@ public sealed class RecordChargeCommandHandler : IRequestHandler<RecordChargeCom
         var amount = Money.Create(request.Amount);
         var createdBy = _tenantProvider.GetTenantId().ToString(); // TODO: Get actual user ID from JWT
 
+        // Ensure ServiceDate is in UTC for PostgreSQL (timestamp with time zone)
+        var serviceDate = request.ServiceDate.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(request.ServiceDate, DateTimeKind.Utc)
+            : request.ServiceDate.ToUniversalTime();
+
         // Execute domain logic
         var result = account.RecordCharge(
             rideId,
             amount,
-            request.ServiceDate,
+            serviceDate,
             request.FleetId,
             createdBy);
 
