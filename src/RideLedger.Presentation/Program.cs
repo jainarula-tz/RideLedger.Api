@@ -1,0 +1,192 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using RideLedger.Application;
+using RideLedger.Infrastructure;
+using RideLedger.Presentation.Extensions;
+using RideLedger.Presentation.Filters;
+using RideLedger.Presentation.Middleware;
+using Serilog;
+
+// ============================================================================
+// SERILOG CONFIGURATION - Structured Logging
+// ============================================================================
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/rideledger-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithThreadId()
+    .CreateLogger();
+
+try
+{
+    Log.Information("Starting RideLedger.Presentation application");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // ========================================================================
+    // LOGGING - Serilog Integration
+    // ========================================================================
+    builder.Host.UseSerilog();
+
+    // ========================================================================
+    // SERVICE CONFIGURATION - Clean Architecture Pattern
+    // ========================================================================
+
+    // Add HTTP Context Accessor for accessing HttpContext in services
+    builder.Services.AddHttpContextAccessor();
+
+    // ========================================================================
+    // LAYER REGISTRATION - Onion Architecture Pattern
+    // ========================================================================
+    
+    // Application Layer (Business Logic, Commands, Queries, Validators)
+    builder.Services.AddApplication();
+    
+    // Infrastructure Layer (DbContext, Repositories, External Services)
+    builder.Services.AddInfrastructure(builder.Configuration);
+
+    // JWT Authentication & Authorization (Senior Dev Pattern: Secure by default)
+    builder.Services.AddJwtAuthentication(builder.Configuration);
+    builder.Services.AddAuthorizationPolicies();
+
+    // Controllers with Filters
+    builder.Services.AddControllers(options =>
+    {
+        // Order matters! Filters execute in the order they're added
+        options.Filters.Add<TenantAuthorizationFilter>(); // 1. Check auth & tenant
+        options.Filters.Add<ValidationFilter>();           // 2. Validate request
+        options.Filters.Add<PerformanceMonitoringFilter>(); // 3. Monitor performance
+    });
+
+    // API Documentation - Swagger/OpenAPI
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "RideLedger Accounting API",
+            Version = "v1",
+            Description = "Dual-entry accounting and invoicing service for ride services",
+            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            {
+                Name = "RideLedger Team",
+                Email = "support@rideledger.com"
+            }
+        });
+
+        // JWT Bearer authentication in Swagger
+        options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token."
+        });
+
+        options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    });
+
+    // Health Checks
+    builder.Services.AddHealthChecks();
+
+    // CORS Configuration
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins(builder.Configuration.GetSection("CorsOrigins").Get<string[]>() ?? Array.Empty<string>())
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+    });
+
+    // ========================================================================
+    // APPLICATION BUILD
+    // ========================================================================
+    var app = builder.Build();
+
+    // ========================================================================
+    // MIDDLEWARE PIPELINE - Order is Critical!
+    // ========================================================================
+    // Senior Developer Note: Middleware executes top-to-bottom for requests,
+    // bottom-to-top for responses
+
+    // 1. HTTPS Redirection (Security)
+    if (app.Environment.IsProduction())
+    {
+        app.UseHttpsRedirection();
+    }
+
+    // 2. Swagger (Development Only)
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "RideLedger API v1");
+            options.RoutePrefix = string.Empty; // Serve at root
+        });
+    }
+
+    // 3. Request Logging Middleware (Log all requests)
+    app.UseMiddleware<RequestLoggingMiddleware>();
+
+    // 4. CORS (Must be before authentication)
+    app.UseCors("AllowFrontend");
+
+    // 5. Authentication & Authorization (JWT validation)
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // 6. Global Exception Handler (Catch all unhandled exceptions)
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // 7. Map Controllers
+    app.MapControllers();
+
+    // 8. Health Check Endpoints
+    app.MapHealthChecks("/health/live").AllowAnonymous();
+    app.MapHealthChecks("/health/ready").AllowAnonymous();
+
+    // ========================================================================
+    // START APPLICATION
+    // ========================================================================
+    Log.Information("Application configured successfully. Starting web host...");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+// Make Program class accessible for integration tests
+public partial class Program { }
+

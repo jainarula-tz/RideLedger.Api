@@ -1,0 +1,63 @@
+# .NET Build Artifacts
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDEs and Editors
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+**/*.suo
+**/*.swp
+**/*.swo
+**/~*
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+**/README.md
+**/LICENSE
+**/CHANGELOG.md
+**/*.md
+
+# Tests
+**/tests/
+**/*Tests/
+**/*.Tests/
+
+# Configuration Files (non-production)
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Logs
+**/*.log
+**/logs/
+
+# NuGet Packages
+**/*.nupkg
+**/*.snupkg
+**/packages/
+
+# Docker Files
+**/Dockerfile*
+**/docker-compose*
+**/.dockerignore
+
+# Specifications
+**/specs/
+**/.specify/
+**/.github/
+
+# Environment Files
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS Files
+**/.DS_Store
+**/Thumbs.db

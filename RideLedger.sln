@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.Application", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.Infrastructure", "src\RideLedger.Infrastructure\RideLedger.Infrastructure.csproj", "{94784224-433D-4FB5-8E1B-257A4FBBC76F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.API", "src\RideLedger.API\RideLedger.API.csproj", "{3825A71E-3DD0-4BD3-8C53-405F5012CDDC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.Presentation", "src\RideLedger.Presentation\RideLedger.Presentation.csproj", "{3825A71E-3DD0-4BD3-8C53-405F5012CDDC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.Application.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.Infrastructure.Tests", "tests\RideLedger.Infrastructure.Tests\RideLedger.Infrastructure.Tests.csproj", "{0A07FDA3-8405-4078-840F-AC80C3ABF5CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.API.Tests", "tests\RideLedger.API.Tests\RideLedger.API.Tests.csproj", "{5E0BE2B7-D9DB-4787-898F-D3F468992D50}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RideLedger.Presentation.Tests", "tests\RideLedger.Presentation.Tests\RideLedger.Presentation.Tests.csproj", "{5E0BE2B7-D9DB-4787-898F-D3F468992D50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

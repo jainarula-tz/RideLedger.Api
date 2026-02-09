@@ -26,26 +26,26 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T001 Create .NET 10 solution file at AccountingService.sln
-- [ ] T002 [P] Create AccountingService.Domain project (Class Library, .NET 10) at src/AccountingService.Domain/
-- [ ] T003 [P] Create AccountingService.Application project (Class Library, .NET 10) at src/AccountingService.Application/
-- [ ] T004 [P] Create AccountingService.Infrastructure project (Class Library, .NET 10) at src/AccountingService.Infrastructure/
-- [ ] T005 [P] Create AccountingService.API project (ASP.NET Core Web API, .NET 10) at src/AccountingService.API/
-- [ ] T006 [P] Create AccountingService.UnitTests project (xUnit, .NET 10) at tests/AccountingService.UnitTests/
-- [ ] T007 [P] Create AccountingService.IntegrationTests project (xUnit, .NET 10) at tests/AccountingService.IntegrationTests/
-- [ ] T008 Add project references: Application → Domain, Infrastructure → Domain + Application, API → All layers
-- [ ] T009 Configure Directory.Build.props at root/ with common properties (nullable enabled, implicit usings, treat warnings as errors)
-- [ ] T010 Configure Directory.Packages.props at root/ with centralized NuGet package versions
-- [ ] T011 [P] Add NuGet packages to Domain: FluentResults
-- [ ] T012 [P] Add NuGet packages to Application: FluentValidation, Mapperly, MediatR (optional per research decision)
-- [ ] T013 [P] Add NuGet packages to Infrastructure: Npgsql.EntityFrameworkCore.PostgreSQL 8.0, Polly, Serilog, OpenTelemetry, Confluent.Kafka
-- [ ] T014 [P] Add NuGet packages to API: Microsoft.AspNetCore.OpenApi, Swashbuckle.AspNetCore, FluentValidation.AspNetCore
+- [X] T001 Create .NET 10 solution file at AccountingService.sln
+- [X] T002 [P] Create AccountingService.Domain project (Class Library, .NET 10) at src/AccountingService.Domain/
+- [X] T003 [P] Create AccountingService.Application project (Class Library, .NET 10) at src/AccountingService.Application/
+- [X] T004 [P] Create AccountingService.Infrastructure project (Class Library, .NET 10) at src/AccountingService.Infrastructure/
+- [X] T005 [P] Create AccountingService.API project (ASP.NET Core Web API, .NET 10) at src/AccountingService.API/
+- [X] T006 [P] Create AccountingService.UnitTests project (xUnit, .NET 10) at tests/AccountingService.UnitTests/
+- [X] T007 [P] Create AccountingService.IntegrationTests project (xUnit, .NET 10) at tests/AccountingService.IntegrationTests/
+- [X] T008 Add project references: Application → Domain, Infrastructure → Domain + Application, API → All layers
+- [X] T009 Configure Directory.Build.props at root/ with common properties (nullable enabled, implicit usings, treat warnings as errors)
+- [X] T010 Configure Directory.Packages.props at root/ with centralized NuGet package versions
+- [X] T011 [P] Add NuGet packages to Domain: FluentResults
+- [X] T012 [P] Add NuGet packages to Application: FluentValidation, Mapperly, MediatR (optional per research decision)
+- [X] T013 [P] Add NuGet packages to Infrastructure: Npgsql.EntityFrameworkCore.PostgreSQL 8.0, Polly, Serilog, OpenTelemetry, Confluent.Kafka
+- [X] T014 [P] Add NuGet packages to API: Microsoft.AspNetCore.OpenApi, Swashbuckle.AspNetCore, FluentValidation.AspNetCore
 - [ ] T015 Create .editorconfig at root/ with C# coding standards from constitution
-- [ ] T016 Create appsettings.json at src/AccountingService.API/ with ConnectionStrings, Kafka, Redis, OpenTelemetry configuration
-- [ ] T017 Create appsettings.Development.json with local development overrides
+- [X] T016 Create appsettings.json at src/AccountingService.API/ with ConnectionStrings, Kafka, Redis, OpenTelemetry configuration
+- [X] T017 Create appsettings.Development.json with local development overrides
 - [ ] T018 Create Dockerfile at root/ with multi-stage build (build → runtime)
 - [ ] T019 Create docker-compose.yml at root/ with PostgreSQL, Redis, Kafka services for local development
-- [ ] T020 Create .dockerignore at root/ excluding bin, obj, .git
+- [X] T020 Create .dockerignore at root/ excluding bin, obj, .git
 
 ---
 
@@ -59,33 +59,33 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T021 Implement Money value object at src/AccountingService.Domain/ValueObjects/Money.cs with decimal(19,4), operators (+, -), validation
-- [ ] T022 [P] Implement AccountId value object at src/AccountingService.Domain/ValueObjects/AccountId.cs as strongly-typed GUID wrapper
-- [ ] T023 [P] Implement RideId value object at src/AccountingService.Domain/ValueObjects/RideId.cs as strongly-typed string wrapper
-- [ ] T024 [P] Implement PaymentReferenceId value object at src/AccountingService.Domain/ValueObjects/PaymentReferenceId.cs
+- [X] T021 Implement Money value object at src/AccountingService.Domain/ValueObjects/Money.cs with decimal(19,4), operators (+, -), validation
+- [X] T022 [P] Implement AccountId value object at src/AccountingService.Domain/ValueObjects/AccountId.cs as strongly-typed GUID wrapper
+- [X] T023 [P] Implement RideId value object at src/AccountingService.Domain/ValueObjects/RideId.cs as strongly-typed string wrapper
+- [X] T024 [P] Implement PaymentReferenceId value object at src/AccountingService.Domain/ValueObjects/PaymentReferenceId.cs
 - [ ] T025 Implement Result pattern base classes at src/AccountingService.Application/Common/Result.cs using FluentResults
-- [ ] T026 [P] Create domain error definitions at src/AccountingService.Domain/Errors/AccountErrors.cs (NotFound, Inactive, TenantMismatch)
-- [ ] T027 [P] Create domain error definitions at src/AccountingService.Domain/Errors/LedgerErrors.cs (DuplicateCharge, DuplicatePayment, InvalidAmount)
-- [ ] T028 Create AccountingDbContext at src/AccountingService.Infrastructure/Persistence/DbContext/AccountingDbContext.cs with DbSets
-- [ ] T029 Configure DbContext with lowercase_snake_case naming convention, PostgreSQL timestamptz, JSONB support
-- [ ] T029a Configure EF Core to use timestamptz type for all DateTime properties and add integration test validating UTC storage
-- [ ] T030 Implement ITenantProvider at src/AccountingService.Application/Common/ITenantProvider.cs interface
-- [ ] T031 Implement TenantProvider at src/AccountingService.Infrastructure/MultiTenancy/TenantProvider.cs extracting tenant_id from JWT claims
-- [ ] T032 Configure EF Core global query filters for tenant_id in AccountingDbContext OnModelCreating
+- [X] T026 [P] Create domain error definitions at src/AccountingService.Domain/Errors/AccountErrors.cs (NotFound, Inactive, TenantMismatch)
+- [X] T027 [P] Create domain error definitions at src/AccountingService.Domain/Errors/LedgerErrors.cs (DuplicateCharge, DuplicatePayment, InvalidAmount)
+- [X] T028 Create AccountingDbContext at src/AccountingService.Infrastructure/Persistence/DbContext/AccountingDbContext.cs with DbSets
+- [X] T029 Configure DbContext with lowercase_snake_case naming convention, PostgreSQL timestamptz, JSONB support
+- [X] T029a Configure EF Core to use timestamptz type for all DateTime properties and add integration test validating UTC storage
+- [X] T030 Implement ITenantProvider at src/AccountingService.Application/Common/ITenantProvider.cs interface
+- [X] T031 Implement TenantProvider at src/AccountingService.Infrastructure/MultiTenancy/TenantProvider.cs extracting tenant_id from JWT claims
+- [X] T032 Configure EF Core global query filters for tenant_id in AccountingDbContext OnModelCreating
 - [ ] T033a Configure PostgreSQL Row-Level Security on accounts table with tenant_isolation_policy in migration
 - [ ] T033b Configure PostgreSQL Row-Level Security on ledger_entries table with tenant_isolation_policy in migration
 - [ ] T033c Configure PostgreSQL Row-Level Security on invoices table with tenant_isolation_policy in migration
 - [ ] T034 Create base repository interface IRepository<T> at src/AccountingService.Domain/Repositories/IRepository.cs
 - [ ] T035 Implement base repository at src/AccountingService.Infrastructure/Persistence/Repositories/RepositoryBase.cs with tenant filtering
 - [ ] T036 Configure Polly resilience policies at src/AccountingService.Infrastructure/Resilience/ResiliencePolicies.cs (retry, circuit breaker, timeout)
-- [ ] T037 Create global exception handling middleware at src/AccountingService.API/Middleware/GlobalExceptionHandlerMiddleware.cs returning RFC 9457 Problem Details
-- [ ] T038 Configure Serilog with structured logging at src/AccountingService.API/Program.cs (console + file sinks, correlation IDs)
+- [X] T037 Create global exception handling middleware at src/AccountingService.API/Middleware/GlobalExceptionHandlerMiddleware.cs returning RFC 9457 Problem Details
+- [X] T038 Configure Serilog with structured logging at src/AccountingService.API/Program.cs (console + file sinks, correlation IDs)
 - [ ] T039 Configure OpenTelemetry tracing at src/AccountingService.API/Program.cs (traces, metrics, logs with OTLP exporter)
 - [ ] T040 Add ActivitySource for custom spans at src/AccountingService.Application/Common/ActivitySources.cs
-- [ ] T041 Configure Swagger/OpenAPI generation at src/AccountingService.API/Program.cs with JWT bearer auth, examples
+- [X] T041 Configure Swagger/OpenAPI generation at src/AccountingService.API/Program.cs with JWT bearer auth, examples
 - [ ] T042 Create health check endpoints at src/AccountingService.API/HealthChecks/ (/health/live, /health/ready, /health/startup)
-- [ ] T043 Configure CORS policy at src/AccountingService.API/Program.cs allowing frontend origin
-- [ ] T044 Create initial EF Core migration "InitialCreate" with outbox_messages table schema
+- [X] T043 Configure CORS policy at src/AccountingService.API/Program.cs allowing frontend origin
+- [X] T044 Create initial EF Core migration "InitialCreate" with outbox_messages table schema
 - [ ] T045 Implement database seeding for development at src/AccountingService.Infrastructure/Persistence/Seed/DatabaseSeeder.cs
 
 ---
@@ -103,31 +103,31 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T046 [P] [US1] Create Account aggregate root at src/AccountingService.Domain/Aggregates/Account.cs with private setters, collections
-- [ ] T047 [P] [US1] Create LedgerEntry entity at src/AccountingService.Domain/Entities/LedgerEntry.cs with DebitAmount/CreditAmount, immutability
-- [ ] T048 [US1] Add RecordCharge method to Account aggregate validating status, checking duplicates, creating debit/credit entries
-- [ ] T049 [P] [US1] Create AccountType enum at src/AccountingService.Domain/Enums/AccountType.cs (Organization, Individual)
-- [ ] T050 [P] [US1] Create AccountStatus enum at src/AccountingService.Domain/Enums/AccountStatus.cs (Active, Inactive)
-- [ ] T051 [P] [US1] Create LedgerAccountType enum at src/AccountingService.Domain/Enums/LedgerAccountType.cs (AccountsReceivable, ServiceRevenue, Cash)
-- [ ] T052 [P] [US1] Create SourceType enum at src/AccountingService.Domain/Enums/SourceType.cs (Ride, Payment)
-- [ ] T052a [P] [US3] Create PaymentMode enum at src/AccountingService.Domain/Enums/PaymentMode.cs (Cash, Card, BankTransfer)
+- [X] T046 [P] [US1] Create Account aggregate root at src/AccountingService.Domain/Aggregates/Account.cs with private setters, collections
+- [X] T047 [P] [US1] Create LedgerEntry entity at src/AccountingService.Domain/Entities/LedgerEntry.cs with DebitAmount/CreditAmount, immutability
+- [X] T048 [US1] Add RecordCharge method to Account aggregate validating status, checking duplicates, creating debit/credit entries
+- [X] T049 [P] [US1] Create AccountType enum at src/AccountingService.Domain/Enums/AccountType.cs (Organization, Individual)
+- [X] T050 [P] [US1] Create AccountStatus enum at src/AccountingService.Domain/Enums/AccountStatus.cs (Active, Inactive)
+- [X] T051 [P] [US1] Create LedgerAccountType enum at src/AccountingService.Domain/Enums/LedgerAccountType.cs (AccountsReceivable, ServiceRevenue, Cash)
+- [X] T052 [P] [US1] Create SourceType enum at src/AccountingService.Domain/Enums/SourceType.cs (Ride, Payment)
+- [X] T052a [P] [US3] Create PaymentMode enum at src/AccountingService.Domain/Enums/PaymentMode.cs (Cash, Card, BankTransfer)
 - [ ] T053 [US1] Create ChargeRecordedEvent domain event at src/AccountingService.Domain/Events/ChargeRecordedEvent.cs
 - [ ] T054 [US1] Create RecordChargeCommand at src/AccountingService.Application/Commands/RecordChargeCommand.cs with properties
-- [ ] T055 [US1] Create RecordChargeCommandValidator at src/AccountingService.Application/Validators/RecordChargeCommandValidator.cs using FluentValidation
-- [ ] T056 [US1] Create RecordChargeCommandHandler at src/AccountingService.Application/Handlers/RecordChargeCommandHandler.cs returning Result<Guid>
-- [ ] T057 [US1] Implement handler logic: load account, call RecordCharge, save, publish event to outbox
-- [ ] T058 [P] [US1] Create AccountEntity (persistence model) at src/AccountingService.Infrastructure/Persistence/Entities/AccountEntity.cs
-- [ ] T059 [P] [US1] Create LedgerEntryEntity (persistence model) at src/AccountingService.Infrastructure/Persistence/Entities/LedgerEntryEntity.cs
-- [ ] T060 [P] [US1] Create AccountEntityConfiguration at src/AccountingService.Infrastructure/Persistence/Configurations/AccountEntityConfiguration.cs with table name, indexes
-- [ ] T061 [P] [US1] Create LedgerEntryEntityConfiguration with unique index on (account_id, source_reference_id) WHERE source_type = 'Ride'
+- [X] T055 [US1] Create RecordChargeCommandValidator at src/AccountingService.Application/Validators/RecordChargeCommandValidator.cs using FluentValidation
+- [X] T056 [US1] Create RecordChargeCommandHandler at src/AccountingService.Application/Handlers/RecordChargeCommandHandler.cs returning Result<Guid>
+- [X] T057 [US1] Implement handler logic: load account, call RecordCharge, save, publish event to outbox
+- [X] T058 [P] [US1] Create AccountEntity (persistence model) at src/AccountingService.Infrastructure/Persistence/Entities/AccountEntity.cs
+- [X] T059 [P] [US1] Create LedgerEntryEntity (persistence model) at src/AccountingService.Infrastructure/Persistence/Entities/LedgerEntryEntity.cs
+- [X] T060 [P] [US1] Create AccountEntityConfiguration at src/AccountingService.Infrastructure/Persistence/Configurations/AccountEntityConfiguration.cs with table name, indexes
+- [X] T061 [P] [US1] Create LedgerEntryEntityConfiguration with unique index on (account_id, source_reference_id) WHERE source_type = 'Ride'
 - [ ] T061a [US1] Configure ledger_entries table as insert-only via database trigger preventing UPDATE/DELETE operations for immutability enforcement
 - [ ] T062 [US1] Create domain-to-persistence mapper at src/AccountingService.Infrastructure/Mappers/AccountMapper.cs using Mapperly
-- [ ] T063 [US1] Create IAccountRepository at src/AccountingService.Domain/Repositories/IAccountRepository.cs with GetByIdAsync, SaveAsync
-- [ ] T064 [US1] Implement AccountRepository at src/AccountingService.Infrastructure/Persistence/Repositories/AccountRepository.cs
-- [ ] T065 [US1] Create RecordChargeRequest DTO at src/AccountingService.API/Models/RecordChargeRequest.cs
-- [ ] T066 [US1] Create RecordChargeResponse DTO at src/AccountingService.API/Models/RecordChargeResponse.cs
-- [ ] T067 [US1] Create ChargesController at src/AccountingService.API/Controllers/ChargesController.cs with POST /api/v1/charges endpoint
-- [ ] T068 [US1] Add EF Core migration "AddChargeSupport" with accounts, ledger_entries tables
+- [X] T063 [US1] Create IAccountRepository at src/AccountingService.Domain/Repositories/IAccountRepository.cs with GetByIdAsync, SaveAsync
+- [X] T064 [US1] Implement AccountRepository at src/AccountingService.Infrastructure/Persistence/Repositories/AccountRepository.cs
+- [X] T065 [US1] Create RecordChargeRequest DTO at src/AccountingService.API/Models/RecordChargeRequest.cs
+- [X] T066 [US1] Create RecordChargeResponse DTO at src/AccountingService.API/Models/RecordChargeResponse.cs
+- [X] T067 [US1] Create ChargesController at src/AccountingService.API/Controllers/ChargesController.cs with POST /api/v1/charges endpoint
+- [X] T068 [US1] Add EF Core migration "AddChargeSupport" with accounts, ledger_entries tables
 - [ ] T069 [US1] Write unit test for Account.RecordCharge at tests/AccountingService.UnitTests/Domain/AccountTests.cs
 - [ ] T070 [US1] Write unit test for RecordChargeCommandHandler at tests/AccountingService.UnitTests/Handlers/RecordChargeCommandHandlerTests.cs
 - [ ] T071 [US1] Write integration test for POST /api/v1/charges at tests/AccountingService.IntegrationTests/Controllers/ChargesControllerTests.cs
@@ -147,12 +147,12 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T072 [US2] Create GetAccountBalanceQuery at src/AccountingService.Application/Queries/GetAccountBalanceQuery.cs
-- [ ] T073 [US2] Create GetAccountBalanceQueryHandler at src/AccountingService.Application/Handlers/GetAccountBalanceQueryHandler.cs
-- [ ] T074 [US2] Implement handler with EF Core query: SELECT SUM(debit_amount) - SUM(credit_amount) using AsNoTracking()
+- [X] T072 [US2] Create GetAccountBalanceQuery at src/AccountingService.Application/Queries/GetAccountBalanceQuery.cs
+- [X] T073 [US2] Create GetAccountBalanceQueryHandler at src/AccountingService.Application/Handlers/GetAccountBalanceQueryHandler.cs
+- [X] T074 [US2] Implement handler with EF Core query: SELECT SUM(debit_amount) - SUM(credit_amount) using AsNoTracking()
 - [ ] T075 [US2] Add composite index on ledger_entries(account_id, tenant_id) INCLUDE (debit_amount, credit_amount) in migration
 - [ ] T076 [US2] Create AccountBalanceResponse DTO at src/AccountingService.API/Models/AccountBalanceResponse.cs
-- [ ] T077 [US2] Add GET /api/v1/accounts/{accountId}/balance endpoint to AccountsController
+- [X] T077 [US2] Add GET /api/v1/accounts/{accountId}/balance endpoint to AccountsController
 - [ ] T078 [US2] Write unit test for GetAccountBalanceQueryHandler at tests/AccountingService.UnitTests/Handlers/GetAccountBalanceQueryHandlerTests.cs
 - [ ] T079 [US2] Write integration test for GET balance endpoint verifying calculation correctness
 - [ ] T080 [US2] Add performance test verifying p95 latency ≤ 50ms with 10,000 transactions
@@ -171,15 +171,15 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T081 [US3] Add RecordPayment method to Account aggregate creating debit Cash, credit AR entries with optional PaymentMode parameter
+- [X] T081 [US3] Add RecordPayment method to Account aggregate creating debit Cash, credit AR entries with optional PaymentMode parameter
 - [ ] T082 [US3] Create PaymentReceivedEvent at src/AccountingService.Domain/Events/PaymentReceivedEvent.cs
 - [ ] T083 [US3] Create RecordPaymentCommand at src/AccountingService.Application/Commands/RecordPaymentCommand.cs
-- [ ] T084 [US3] Create RecordPaymentCommandValidator with FluentValidation rules
-- [ ] T085 [US3] Create RecordPaymentCommandHandler at src/AccountingService.Application/Handlers/RecordPaymentCommandHandler.cs
+- [X] T084 [US3] Create RecordPaymentCommandValidator with FluentValidation rules
+- [X] T085 [US3] Create RecordPaymentCommandHandler at src/AccountingService.Application/Handlers/RecordPaymentCommandHandler.cs
 - [ ] T086 [US3] Add unique index on ledger_entries(source_reference_id) WHERE source_type = 'Payment' in migration
-- [ ] T087 [US3] Create RecordPaymentRequest DTO at src/AccountingService.API/Models/RecordPaymentRequest.cs
-- [ ] T088 [US3] Create RecordPaymentResponse DTO at src/AccountingService.API/Models/RecordPaymentResponse.cs
-- [ ] T089 [US3] Create PaymentsController with POST /api/v1/payments endpoint
+- [X] T087 [US3] Create RecordPaymentRequest DTO at src/AccountingService.API/Models/RecordPaymentRequest.cs
+- [X] T088 [US3] Create RecordPaymentResponse DTO at src/AccountingService.API/Models/RecordPaymentResponse.cs
+- [X] T089 [US3] Create PaymentsController with POST /api/v1/payments endpoint
 - [ ] T090 [US3] Write unit tests for Account.RecordPayment covering full payment, partial, overpayment scenarios
 - [ ] T091 [US3] Write integration test for POST /api/v1/payments endpoint
 - [ ] T092 [US3] Write integration test verifying idempotency with duplicate Payment Reference ID
@@ -199,26 +199,26 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T093 [P] [US4] Create Invoice aggregate at src/AccountingService.Domain/Aggregates/Invoice.cs
-- [ ] T094 [P] [US4] Create InvoiceLineItem entity at src/AccountingService.Domain/Entities/InvoiceLineItem.cs
+- [X] T093 [P] [US4] Create Invoice aggregate at src/AccountingService.Domain/Aggregates/Invoice.cs
+- [X] T094 [P] [US4] Create InvoiceLineItem entity at src/AccountingService.Domain/Entities/InvoiceLineItem.cs
 - [ ] T095 [P] [US4] Create BillingFrequency enum at src/AccountingService.Domain/Enums/BillingFrequency.cs (PerRide, Daily, Weekly, Monthly)
 - [ ] T096 [US4] Implement Invoice.Generate static factory method calculating subtotal, payments, outstanding balance
 - [ ] T096a [US4] Implement InvoiceNumberGenerator service at src/AccountingService.Application/Services/InvoiceNumberGenerator.cs with tenant-scoped sequential pattern (INV-{Sequence:D6})
 - [ ] T096b [US4] Add IsImmutable shadow property to Invoice entity, enforce read-only constraint in SaveChanges override
 - [ ] T097 [US4] Create InvoiceGeneratedEvent at src/AccountingService.Domain/Events/InvoiceGeneratedEvent.cs
 - [ ] T098 [US4] Create GenerateInvoiceCommand at src/AccountingService.Application/Commands/GenerateInvoiceCommand.cs
-- [ ] T099 [US4] Create GenerateInvoiceCommandValidator with date range validation
+- [X] T099 [US4] Create GenerateInvoiceCommandValidator with date range validation
 - [ ] T100 [US4] Create GenerateInvoiceCommandHandler at src/AccountingService.Application/Handlers/GenerateInvoiceCommandHandler.cs
 - [ ] T101 [US4] Implement handler logic: query ledger entries for date range, group by billing frequency, create invoice
-- [ ] T102 [P] [US4] Create InvoiceEntity persistence model at src/AccountingService.Infrastructure/Persistence/Entities/InvoiceEntity.cs
-- [ ] T103 [P] [US4] Create InvoiceLineItemEntity at src/AccountingService.Infrastructure/Persistence/Entities/InvoiceLineItemEntity.cs
+- [X] T102 [P] [US4] Create InvoiceEntity persistence model at src/AccountingService.Infrastructure/Persistence/Entities/InvoiceEntity.cs
+- [X] T103 [P] [US4] Create InvoiceLineItemEntity at src/AccountingService.Infrastructure/Persistence/Entities/InvoiceLineItemEntity.cs
 - [ ] T104 [P] [US4] Create InvoiceEntityConfiguration with invoices table, indexes on account_id, billing_period
 - [ ] T105 [US4] Create IInvoiceRepository at src/AccountingService.Domain/Repositories/IInvoiceRepository.cs
-- [ ] T106 [US4] Implement InvoiceRepository at src/AccountingService.Infrastructure/Persistence/Repositories/InvoiceRepository.cs
-- [ ] T107 [US4] Create GenerateInvoiceRequest DTO at src/AccountingService.API/Models/GenerateInvoiceRequest.cs
-- [ ] T108 [US4] Create InvoiceResponse DTO at src/AccountingService.API/Models/InvoiceResponse.cs
-- [ ] T109 [US4] Create InvoicesController with POST /api/v1/invoices/generate endpoint
-- [ ] T110 [US4] Add EF Core migration "AddInvoiceSupport" with invoices and invoice_line_items tables
+- [X] T106 [US4] Implement InvoiceRepository at src/AccountingService.Infrastructure/Persistence/Repositories/InvoiceRepository.cs
+- [X] T107 [US4] Create GenerateInvoiceRequest DTO at src/AccountingService.API/Models/GenerateInvoiceRequest.cs
+- [X] T108 [US4] Create InvoiceResponse DTO at src/AccountingService.API/Models/InvoiceResponse.cs
+- [X] T109 [US4] Create InvoicesController with POST /api/v1/invoices/generate endpoint
+- [X] T110 [US4] Add EF Core migration "AddInvoiceSupport" with invoices and invoice_line_items tables
 - [ ] T111 [US4] Write unit test for Invoice.Generate with multiple line items
 - [ ] T112 [US4] Write integration test for invoice generation with monthly billing frequency
 - [ ] T113 [US4] Write integration test for empty date range (no billable items) returning validation error
@@ -243,12 +243,12 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [ ] T115 [US5] Create AccountCreatedEvent at src/AccountingService.Domain/Events/AccountCreatedEvent.cs
 - [ ] T116 [US5] Create CreateAccountCommand at src/AccountingService.Application/Commands/CreateAccountCommand.cs
 - [ ] T117 [US5] Create CreateAccountCommandValidator with name, type validation
-- [ ] T118 [US5] Create CreateAccountCommandHandler at src/AccountingService.Application/Handlers/CreateAccountCommandHandler.cs
+- [X] T118 [US5] Create CreateAccountCommandHandler at src/AccountingService.Application/Handlers/CreateAccountCommandHandler.cs
 - [ ] T119 [US5] Create GetAccountQuery at src/AccountingService.Application/Queries/GetAccountQuery.cs
-- [ ] T120 [US5] Create GetAccountQueryHandler at src/AccountingService.Application/Handlers/GetAccountQueryHandler.cs
+- [X] T120 [US5] Create GetAccountQueryHandler at src/AccountingService.Application/Handlers/GetAccountQueryHandler.cs
 - [ ] T121 [US5] Create CreateAccountRequest DTO at src/AccountingService.API/Models/CreateAccountRequest.cs
 - [ ] T122 [US5] Create AccountResponse DTO at src/AccountingService.API/Models/AccountResponse.cs
-- [ ] T123 [US5] Create AccountsController with POST /api/v1/accounts and GET /api/v1/accounts/{id} endpoints
+- [X] T123 [US5] Create AccountsController with POST /api/v1/accounts and GET /api/v1/accounts/{id} endpoints
 - [ ] T124 [US5] Add unique index on accounts(account_id, tenant_id) in migration
 - [ ] T125 [US5] Write unit test for Account.Create factory method
 - [ ] T126 [US5] Write integration test for POST /api/v1/accounts endpoint
@@ -307,9 +307,9 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T163 [P] Create OutboxMessage entity at src/AccountingService.Infrastructure/Outbox/OutboxMessage.cs
-- [ ] T164 [P] Add DbSet<OutboxMessage> to AccountingDbContext
-- [ ] T165 Create OutboxMessageConfiguration at src/AccountingService.Infrastructure/Persistence/Configurations/OutboxMessageConfiguration.cs
+- [X] T163 [P] Create OutboxMessage entity at src/AccountingService.Infrastructure/Outbox/OutboxMessage.cs
+- [X] T164 [P] Add DbSet<OutboxMessage> to AccountingDbContext
+- [X] T165 Create OutboxMessageConfiguration at src/AccountingService.Infrastructure/Persistence/Configurations/OutboxMessageConfiguration.cs
 - [ ] T166 Add outbox_messages table to migration with indexes on (processed_at, occurred_at), tenant_id
 - [ ] T167 Implement IDomainEventHandler interface at src/AccountingService.Application/Common/IDomainEventHandler.cs
 - [ ] T168 Create OutboxWriter at src/AccountingService.Infrastructure/Outbox/OutboxWriter.cs to serialize events to outbox
