@@ -7,8 +7,11 @@ using RideLedger.Application.DTOs.Balances;
 using RideLedger.Application.DTOs.Transactions;
 using RideLedger.Application.Queries.Accounts;
 using RideLedger.Application.Queries.Balances;
+using RideLedger.Application.Queries.Statements;
 using RideLedger.Application.Queries.Transactions;
+using RideLedger.Application.Handlers.Statements;
 using RideLedger.Domain.Enums;
+using RideLedger.Domain.Repositories;
 
 namespace RideLedger.Presentation.Controllers;
 
@@ -294,6 +297,92 @@ public sealed class AccountsController : ControllerBase
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Search Failed",
                 Detail = result.Errors.FirstOrDefault()?.Message ?? "Failed to search accounts"
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Retrieves account statement for a specific period
+    /// Includes opening balance, all transactions, and closing balance
+    /// </summary>
+    /// <param name="id">Account ID</param>
+    /// <param name="startDate">Statement period start date (inclusive)</param>
+    /// <param name="endDate">Statement period end date (inclusive)</param>
+    /// <param name="page">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 50, max: 100)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Account statement with transactions and balances</returns>
+    [HttpGet("{id:guid}/statements")]
+    [ProducesResponseType(typeof(AccountStatementResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAccountStatement(
+        Guid id,
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Retrieving account statement: AccountId={AccountId}, Period={StartDate} to {EndDate}",
+            id,
+            startDate,
+            endDate);
+
+        // Validate date range
+        if (startDate > endDate)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid Date Range",
+                Detail = "Start date must be before or equal to end date"
+            });
+        }
+
+        // Validate pagination parameters
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 50;
+        if (pageSize > 100) pageSize = 100;
+
+        var query = new GetAccountStatementQuery
+        {
+            AccountId = id,
+            StartDate = startDate,
+            EndDate = endDate,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        // Inject handler directly (not using MediatR to keep it simple)
+        var accountRepository = HttpContext.RequestServices.GetRequiredService<IAccountRepository>();
+        var logger = HttpContext.RequestServices.GetRequiredService<ILogger<GetAccountStatementQueryHandler>>();
+        var handler = new GetAccountStatementQueryHandler(accountRepository, logger);
+
+        var result = await handler.Handle(query, cancellationToken);
+
+        if (result.IsFailed)
+        {
+            var error = result.Errors.FirstOrDefault();
+            if (error?.Message.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Account Not Found",
+                    Detail = $"Account with ID {id} was not found"
+                });
+            }
+
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Statement Generation Failed",
+                Detail = error?.Message ?? "Failed to generate account statement"
             });
         }
 

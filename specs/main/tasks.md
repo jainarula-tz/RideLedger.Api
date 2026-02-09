@@ -40,11 +40,11 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T012 [P] Add NuGet packages to Application: FluentValidation, Mapperly, MediatR (optional per research decision)
 - [X] T013 [P] Add NuGet packages to Infrastructure: Npgsql.EntityFrameworkCore.PostgreSQL 8.0, Polly, Serilog, OpenTelemetry, Confluent.Kafka
 - [X] T014 [P] Add NuGet packages to API: Microsoft.AspNetCore.OpenApi, Swashbuckle.AspNetCore, FluentValidation.AspNetCore
-- [ ] T015 Create .editorconfig at root/ with C# coding standards from constitution
+- [X] T015 Create .editorconfig at root/ with C# coding standards from constitution
 - [X] T016 Create appsettings.json at src/AccountingService.API/ with ConnectionStrings, Kafka, Redis, OpenTelemetry configuration
 - [X] T017 Create appsettings.Development.json with local development overrides
-- [ ] T018 Create Dockerfile at root/ with multi-stage build (build → runtime)
-- [ ] T019 Create docker-compose.yml at root/ with PostgreSQL, Redis, Kafka services for local development
+- [X] T018 Create Dockerfile at root/ with multi-stage build (build → runtime)
+- [X] T019 Create docker-compose.yml at root/ with PostgreSQL, Redis, Kafka services for local development
 - [X] T020 Create .dockerignore at root/ excluding bin, obj, .git
 
 ---
@@ -268,12 +268,12 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T128 [US6] Create GetAccountStatementQuery at src/AccountingService.Application/Queries/GetAccountStatementQuery.cs with date range
-- [ ] T129 [US6] Create GetAccountStatementQueryHandler at src/AccountingService.Application/Handlers/GetAccountStatementQueryHandler.cs
-- [ ] T130 [US6] Implement handler: calculate opening balance, query transactions with pagination, calculate closing balance
+- [X] T128 [US6] Create GetAccountStatementQuery at src/AccountingService.Application/Queries/GetAccountStatementQuery.cs with date range
+- [X] T129 [US6] Create GetAccountStatementQueryHandler at src/AccountingService.Application/Handlers/GetAccountStatementQueryHandler.cs
+- [X] T130 [US6] Implement handler: calculate opening balance, query transactions with pagination, calculate closing balance
 - [ ] T131 [US6] Add composite index on ledger_entries(account_id, transaction_date DESC) in migration
-- [ ] T132 [US6] Create AccountStatementResponse DTO at src/AccountingService.API/Models/AccountStatementResponse.cs
-- [ ] T133 [US6] Add GET /api/v1/accounts/{accountId}/statements endpoint to AccountsController
+- [X] T132 [US6] Create AccountStatementResponse DTO at src/AccountingService.API/Models/AccountStatementResponse.cs
+- [X] T133 [US6] Add GET /api/v1/accounts/{accountId}/statements endpoint to AccountsController
 - [ ] T134 [US6] Write unit test for statement query handler
 - [ ] T135 [US6] Write integration test for GET statement endpoint with date range filter
 - [ ] T154 [US6] Write performance test verifying p95 latency ≤ 3s with 10,000 transactions

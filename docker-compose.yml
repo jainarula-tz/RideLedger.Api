@@ -1,0 +1,158 @@
+# Docker Compose for RideLedger Local Development
+# Provides PostgreSQL, Redis, and Kafka with Zookeeper for local development
+
+version: '3.8'
+
+services:
+  # ========================================
+  # PostgreSQL Database
+  # ========================================
+  postgres:
+    image: postgres:17-alpine
+    container_name: rideledger-postgres
+    environment:
+      POSTGRES_DB: rideledger
+      POSTGRES_USER: rideledger_user
+      POSTGRES_PASSWORD: rideledger_pass_dev
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rideledger-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rideledger_user -d rideledger"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================
+  # Redis Cache
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: rideledger-redis
+    command: redis-server --requirepass rideledger_redis_pass
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rideledger-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================
+  # Zookeeper (required for Kafka)
+  # ========================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    container_name: rideledger-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - rideledger-network
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================
+  # Kafka Message Broker
+  # ========================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: rideledger-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    networks:
+      - rideledger-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================
+  # Kafka UI (Optional - for development)
+  # ========================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: rideledger-kafka-ui
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8090:8080"
+    networks:
+      - rideledger-network
+    restart: unless-stopped
+
+  # ========================================
+  # RideLedger API (Optional - uncomment to run in container)
+  # ========================================
+  # rideledger-api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: rideledger-api
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - kafka
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Development
+  #     ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=rideledger;Username=rideledger_user;Password=rideledger_pass_dev"
+  #     Redis__ConnectionString: "redis:6379,password=rideledger_redis_pass"
+  #     Kafka__BootstrapServers: "kafka:29092"
+  #   ports:
+  #     - "5000:8080"
+  #     - "5001:8081"
+  #   networks:
+  #     - rideledger-network
+  #   restart: unless-stopped
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  rideledger-network:
+    driver: bridge
