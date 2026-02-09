@@ -35,6 +35,7 @@ public sealed class AccountRepository : IAccountRepository
 
     public async Task<Account?> GetByIdWithLedgerEntriesAsync(AccountId id, CancellationToken cancellationToken = default)
     {
+        // Use AsNoTracking for read operations - UpdateAsync will load with tracking if needed
         var entity = await _context.Accounts
             .Include(a => a.LedgerEntries)
             .AsNoTracking()
@@ -62,7 +63,9 @@ public sealed class AccountRepository : IAccountRepository
     {
         try
         {
-            // Load existing account entity with ledger entries (for tracking)
+            // Always load fresh from database with ledger entries to ensure we have latest data
+            // Note: Can't reuse tracked entity from GetByIdWithLedgerEntriesAsync because 
+            // each HTTP request gets a new DbContext scope
             var existingEntity = await _context.Accounts
                 .Include(a => a.LedgerEntries)
                 .FirstOrDefaultAsync(a => a.AccountId == account.Id.Value, cancellationToken);
