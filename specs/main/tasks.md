@@ -181,8 +181,8 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T088 [US3] Create RecordPaymentResponse DTO at src/AccountingService.API/Models/RecordPaymentResponse.cs
 - [X] T089 [US3] Create PaymentsController with POST /api/v1/payments endpoint
 - [X] T090 [US3] Write unit tests for Account.RecordPayment covering full payment, partial, overpayment scenarios
-- [ ] T091 [US3] Write integration test for POST /api/v1/payments endpoint
-- [ ] T092 [US3] Write integration test verifying idempotency with duplicate Payment Reference ID
+- [X] T091 [US3] Write integration test for POST /api/v1/payments endpoint
+- [X] T092 [US3] Write integration test verifying idempotency with duplicate Payment Reference ID
 
 ---
 
