@@ -83,7 +83,7 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [ ] T039 Configure OpenTelemetry tracing at src/AccountingService.API/Program.cs (traces, metrics, logs with OTLP exporter)
 - [ ] T040 Add ActivitySource for custom spans at src/AccountingService.Application/Common/ActivitySources.cs
 - [X] T041 Configure Swagger/OpenAPI generation at src/AccountingService.API/Program.cs with JWT bearer auth, examples
-- [ ] T042 Create health check endpoints at src/AccountingService.API/HealthChecks/ (/health/live, /health/ready, /health/startup)
+- [X] T042 Create health check endpoints at src/AccountingService.API/HealthChecks/ (/health/live, /health/ready, /health/startup)
 - [X] T043 Configure CORS policy at src/AccountingService.API/Program.cs allowing frontend origin
 - [X] T044 Create initial EF Core migration "InitialCreate" with outbox_messages table schema
 - [ ] T045 Implement database seeding for development at src/AccountingService.Infrastructure/Persistence/Seed/DatabaseSeeder.cs
@@ -201,19 +201,19 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 - [X] T093 [P] [US4] Create Invoice aggregate at src/AccountingService.Domain/Aggregates/Invoice.cs
 - [X] T094 [P] [US4] Create InvoiceLineItem entity at src/AccountingService.Domain/Entities/InvoiceLineItem.cs
-- [ ] T095 [P] [US4] Create BillingFrequency enum at src/AccountingService.Domain/Enums/BillingFrequency.cs (PerRide, Daily, Weekly, Monthly)
-- [ ] T096 [US4] Implement Invoice.Generate static factory method calculating subtotal, payments, outstanding balance
-- [ ] T096a [US4] Implement InvoiceNumberGenerator service at src/AccountingService.Application/Services/InvoiceNumberGenerator.cs with tenant-scoped sequential pattern (INV-{Sequence:D6})
+- [X] T095 [P] [US4] Create BillingFrequency enum at src/AccountingService.Domain/Enums/BillingFrequency.cs (PerRide, Daily, Weekly, Monthly)
+- [X] T096 [US4] Implement Invoice.Generate static factory method calculating subtotal, payments, outstanding balance
+- [X] T096a [US4] Implement InvoiceNumberGenerator service at src/AccountingService.Application/Services/InvoiceNumberGenerator.cs with tenant-scoped sequential pattern (INV-{Sequence:D6})
 - [ ] T096b [US4] Add IsImmutable shadow property to Invoice entity, enforce read-only constraint in SaveChanges override
-- [ ] T097 [US4] Create InvoiceGeneratedEvent at src/AccountingService.Domain/Events/InvoiceGeneratedEvent.cs
-- [ ] T098 [US4] Create GenerateInvoiceCommand at src/AccountingService.Application/Commands/GenerateInvoiceCommand.cs
+- [X] T097 [US4] Create InvoiceGeneratedEvent at src/AccountingService.Domain/Events/InvoiceGeneratedEvent.cs
+- [X] T098 [US4] Create GenerateInvoiceCommand at src/AccountingService.Application/Commands/GenerateInvoiceCommand.cs
 - [X] T099 [US4] Create GenerateInvoiceCommandValidator with date range validation
-- [ ] T100 [US4] Create GenerateInvoiceCommandHandler at src/AccountingService.Application/Handlers/GenerateInvoiceCommandHandler.cs
-- [ ] T101 [US4] Implement handler logic: query ledger entries for date range, group by billing frequency, create invoice
+- [X] T100 [US4] Create GenerateInvoiceCommandHandler at src/AccountingService.Application/Handlers/GenerateInvoiceCommandHandler.cs
+- [X] T101 [US4] Implement handler logic: query ledger entries for date range, group by billing frequency, create invoice
 - [X] T102 [P] [US4] Create InvoiceEntity persistence model at src/AccountingService.Infrastructure/Persistence/Entities/InvoiceEntity.cs
 - [X] T103 [P] [US4] Create InvoiceLineItemEntity at src/AccountingService.Infrastructure/Persistence/Entities/InvoiceLineItemEntity.cs
-- [ ] T104 [P] [US4] Create InvoiceEntityConfiguration with invoices table, indexes on account_id, billing_period
-- [ ] T105 [US4] Create IInvoiceRepository at src/AccountingService.Domain/Repositories/IInvoiceRepository.cs
+- [X] T104 [P] [US4] Create InvoiceEntityConfiguration with invoices table, indexes on account_id, billing_period
+- [X] T105 [US4] Create IInvoiceRepository at src/AccountingService.Domain/Repositories/IInvoiceRepository.cs
 - [X] T106 [US4] Implement InvoiceRepository at src/AccountingService.Infrastructure/Persistence/Repositories/InvoiceRepository.cs
 - [X] T107 [US4] Create GenerateInvoiceRequest DTO at src/AccountingService.API/Models/GenerateInvoiceRequest.cs
 - [X] T108 [US4] Create InvoiceResponse DTO at src/AccountingService.API/Models/InvoiceResponse.cs
@@ -239,15 +239,15 @@ Tasks are organized by **user story** to enable independent implementation and t
 
 ### Tasks
 
-- [ ] T114 [US5] Implement Account.Create static factory method at Account aggregate
-- [ ] T115 [US5] Create AccountCreatedEvent at src/AccountingService.Domain/Events/AccountCreatedEvent.cs
-- [ ] T116 [US5] Create CreateAccountCommand at src/AccountingService.Application/Commands/CreateAccountCommand.cs
-- [ ] T117 [US5] Create CreateAccountCommandValidator with name, type validation
+- [X] T114 [US5] Implement Account.Create static factory method at Account aggregate
+- [X] T115 [US5] Create AccountCreatedEvent at src/AccountingService.Domain/Events/AccountCreatedEvent.cs
+- [X] T116 [US5] Create CreateAccountCommand at src/AccountingService.Application/Commands/CreateAccountCommand.cs
+- [X] T117 [US5] Create CreateAccountCommandValidator with name, type validation
 - [X] T118 [US5] Create CreateAccountCommandHandler at src/AccountingService.Application/Handlers/CreateAccountCommandHandler.cs
-- [ ] T119 [US5] Create GetAccountQuery at src/AccountingService.Application/Queries/GetAccountQuery.cs
+- [X] T119 [US5] Create GetAccountQuery at src/AccountingService.Application/Queries/GetAccountQuery.cs
 - [X] T120 [US5] Create GetAccountQueryHandler at src/AccountingService.Application/Handlers/GetAccountQueryHandler.cs
-- [ ] T121 [US5] Create CreateAccountRequest DTO at src/AccountingService.API/Models/CreateAccountRequest.cs
-- [ ] T122 [US5] Create AccountResponse DTO at src/AccountingService.API/Models/AccountResponse.cs
+- [X] T121 [US5] Create CreateAccountRequest DTO at src/AccountingService.API/Models/CreateAccountRequest.cs
+- [X] T122 [US5] Create AccountResponse DTO at src/AccountingService.API/Models/AccountResponse.cs
 - [X] T123 [US5] Create AccountsController with POST /api/v1/accounts and GET /api/v1/accounts/{id} endpoints
 - [ ] T124 [US5] Add unique index on accounts(account_id, tenant_id) in migration
 - [ ] T125 [US5] Write unit test for Account.Create factory method

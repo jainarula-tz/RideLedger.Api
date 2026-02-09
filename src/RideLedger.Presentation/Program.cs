@@ -109,7 +109,14 @@ try
     });
 
     // Health Checks
-    builder.Services.AddHealthChecks();
+    builder.Services.AddHealthChecks()
+        .AddCheck<RideLedger.Presentation.HealthChecks.DatabaseHealthCheck>(
+            "database",
+            tags: new[] { "ready", "startup" })
+        .AddNpgSql(
+            builder.Configuration.GetConnectionString("DefaultConnection")!,
+            name: "postgresql",
+            tags: new[] { "ready", "startup" });
 
     // CORS Configuration
     builder.Services.AddCors(options =>
@@ -168,8 +175,44 @@ try
     app.MapControllers();
 
     // 8. Health Check Endpoints
-    app.MapHealthChecks("/health/live").AllowAnonymous();
-    app.MapHealthChecks("/health/ready").AllowAnonymous();
+    // Liveness: Is the app running? (simple, no external dependencies)
+    app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = _ => false, // No checks, just return 200 OK if app is running
+        AllowCachingResponses = false
+    }).AllowAnonymous();
+    
+    // Readiness: Can the app handle requests? (checks DB, external dependencies)
+    app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        AllowCachingResponses = false,
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            var result = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                status = report.Status.ToString(),
+                timestamp = DateTime.UtcNow,
+                checks = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    duration = e.Value.Duration.TotalMilliseconds,
+                    data = e.Value.Data
+                })
+            });
+            await context.Response.WriteAsync(result);
+        }
+    }).AllowAnonymous();
+    
+    // Startup: Has the app finished starting? (checks critical startup dependencies)
+    app.MapHealthChecks("/health/startup", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("startup"),
+        AllowCachingResponses = false
+    }).AllowAnonymous();
 
     // ========================================================================
     // START APPLICATION
