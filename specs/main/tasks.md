@@ -219,7 +219,7 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T108 [US4] Create InvoiceResponse DTO at src/AccountingService.API/Models/InvoiceResponse.cs
 - [X] T109 [US4] Create InvoicesController with POST /api/v1/invoices/generate endpoint
 - [X] T110 [US4] Add EF Core migration "AddInvoiceSupport" with invoices and invoice_line_items tables
-- [ ] T111 [US4] Write unit test for Invoice.Generate with multiple line items
+- [X] T111 [US4] Write unit test for Invoice.Generate with multiple line items
 - [ ] T112 [US4] Write integration test for invoice generation with monthly billing frequency
 - [ ] T113 [US4] Write integration test for empty date range (no billable items) returning validation error
 - [ ] T113a [US4] Write integration test verifying invoice traceability (each line item references specific ledger entry IDs per FR-015)
