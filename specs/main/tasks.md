@@ -289,10 +289,10 @@ Tasks are organized by **user story** to enable independent implementation and t
 ### Tasks
 
 - [ ] T155 [EDGE] Write integration test for concurrent charge recording to same account (multiple threads, verify data integrity and no race conditions)
-- [ ] T156 [EDGE] Write integration test for zero-amount charge rejection (verify validator rejects $0.00 charges per FR-021)
-- [ ] T157 [EDGE] Write integration test for negative-amount charge rejection (verify validator rejects negative amounts per FR-021)
-- [ ] T158 [EDGE] Write integration test for zero-amount payment rejection (verify validator rejects $0.00 payments per FR-021)
-- [ ] T159 [EDGE] Write integration test for negative-amount payment rejection (verify validator rejects negative amounts per FR-021)
+- [X] T156 [EDGE] Write integration test for zero-amount charge rejection (verify validator rejects $0.00 charges per FR-021)
+- [X] T157 [EDGE] Write integration test for negative-amount charge rejection (verify validator rejects negative amounts per FR-021)
+- [X] T158 [EDGE] Write integration test for zero-amount payment rejection (verify validator rejects $0.00 payments per FR-021)
+- [X] T159 [EDGE] Write integration test for negative-amount payment rejection (verify validator rejects negative amounts per FR-021)
 - [ ] T160 [EDGE] Write integration test for charge to inactive account rejection (verify returns 400 Bad Request per FR-022)
 - [ ] T161 [EDGE] Write integration test for payment to inactive account rejection (verify returns 400 Bad Request per FR-022)
 - [ ] T162 [EDGE] Write integration test for large transaction volume (10,000 ledger entries, verify balance query performance and pagination)
