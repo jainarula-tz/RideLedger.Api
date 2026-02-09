@@ -275,7 +275,7 @@ Tasks are organized by **user story** to enable independent implementation and t
 - [X] T132 [US6] Create AccountStatementResponse DTO at src/AccountingService.API/Models/AccountStatementResponse.cs
 - [X] T133 [US6] Add GET /api/v1/accounts/{accountId}/statements endpoint to AccountsController
 - [ ] T134 [US6] Write unit test for statement query handler
-- [ ] T135 [US6] Write integration test for GET statement endpoint with date range filter
+- [X] T135 [US6] Write integration test for GET statement endpoint with date range filter
 - [ ] T154 [US6] Write performance test verifying p95 latency ≤ 3s with 10,000 transactions
 
 ---
