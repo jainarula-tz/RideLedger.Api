@@ -66,6 +66,8 @@ public sealed class AccountMapper
         var entry = (LedgerEntry)Activator.CreateInstance(typeof(LedgerEntry), nonPublic: true)!;
         
         SetPrivateProperty(entry, "Id", entity.LedgerEntryId);
+        SetPrivateProperty(entry, "AccountId", AccountId.Create(entity.AccountId));
+        SetPrivateProperty(entry, "TenantId", entity.TenantId);
         SetPrivateProperty(entry, "LedgerAccount", entity.LedgerAccount);
         
         if (entity.DebitAmount.HasValue)
@@ -81,7 +83,9 @@ public sealed class AccountMapper
         SetPrivateProperty(entry, "SourceType", entity.SourceType);
         SetPrivateProperty(entry, "SourceReferenceId", entity.SourceReferenceId);
         SetPrivateProperty(entry, "TransactionDate", entity.TransactionDate);
-        SetPrivateProperty(entry, "CreatedAt", entity.CreatedAt);
+        SetPrivateProperty(entry, "Metadata", entity.Metadata);
+        SetPrivateProperty(entry, "CreatedAtUtc", entity.CreatedAt);
+        SetPrivateProperty(entry, "CreatedBy", entity.CreatedBy);
 
         return entry;
     }

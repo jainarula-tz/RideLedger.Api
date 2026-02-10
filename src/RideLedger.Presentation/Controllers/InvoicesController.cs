@@ -82,13 +82,14 @@ public sealed class InvoicesController : ControllerBase
             });
         }
 
-        var invoiceId = result.Value;
+        var (invoiceId, invoiceNumber) = result.Value;
         var response = new GenerateInvoiceResponse
         {
-            InvoiceId = invoiceId
+            InvoiceId = invoiceId,
+            InvoiceNumber = invoiceNumber
         };
 
-        _logger.LogInformation("Successfully generated invoice {InvoiceId}", invoiceId);
+        _logger.LogInformation("Successfully generated invoice {InvoiceNumber} (ID: {InvoiceId})", invoiceNumber, invoiceId);
 
         return CreatedAtAction(
             nameof(GetInvoiceById),

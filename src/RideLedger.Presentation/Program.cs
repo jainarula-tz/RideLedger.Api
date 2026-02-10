@@ -57,7 +57,7 @@ try
     // builder.Services.AddJwtAuthentication(builder.Configuration);
     // builder.Services.AddAuthorizationPolicies();
 
-    // Controllers with Filters
+    // Controllers with Filters and JSON configuration
     builder.Services.AddControllers(options =>
     {
         // Order matters! Filters execute in the order they're added
@@ -65,6 +65,15 @@ try
         // options.Filters.Add<TenantAuthorizationFilter>(); // 1. Check auth & tenant
         options.Filters.Add<ValidationFilter>();           // 2. Validate request
         options.Filters.Add<PerformanceMonitoringFilter>(); // 3. Monitor performance
+    })
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON serialization to use camelCase for property names
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // Allow trailing commas in JSON (more lenient)
+        options.JsonSerializerOptions.AllowTrailingCommas = true;
+        // Ignore null values when writing JSON (cleaner responses)
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
     // API Documentation - Swagger/OpenAPI

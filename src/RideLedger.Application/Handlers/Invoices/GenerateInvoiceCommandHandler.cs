@@ -16,7 +16,7 @@ namespace RideLedger.Application.Handlers.Invoices;
 /// <summary>
 /// Handler for generating invoices from ledger entries
 /// </summary>
-public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvoiceCommand, Result<Guid>>
+public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvoiceCommand, Result<(Guid InvoiceId, string InvoiceNumber)>>
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IInvoiceRepository _invoiceRepository;
@@ -41,7 +41,7 @@ public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvo
         _logger = logger;
     }
 
-    public async Task<Result<Guid>> Handle(GenerateInvoiceCommand request, CancellationToken cancellationToken)
+    public async Task<Result<(Guid InvoiceId, string InvoiceNumber)>> Handle(GenerateInvoiceCommand request, CancellationToken cancellationToken)
     {
         var tenantId = _tenantProvider.GetTenantId();
         var accountId = AccountId.Create(request.AccountId);
@@ -56,7 +56,7 @@ public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvo
         var account = await _accountRepository.GetByIdWithLedgerEntriesAsync(accountId, cancellationToken);
         if (account == null)
         {
-            return Result.Fail<Guid>(AccountErrors.NotFound(accountId));
+            return Result.Fail<(Guid, string)>(AccountErrors.NotFound(accountId));
         }
 
         // Filter ledger entries for billing period (charges only)
@@ -71,7 +71,7 @@ public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvo
 
         if (!chargeEntries.Any())
         {
-            return Result.Fail<Guid>("No billable charges found for the specified billing period");
+            return Result.Fail<(Guid, string)>("No billable charges found for the specified billing period");
         }
 
         // Group charges by billing frequency
@@ -105,7 +105,7 @@ public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvo
 
         if (invoiceResult.IsFailed)
         {
-            return Result.Fail<Guid>(invoiceResult.Errors);
+            return Result.Fail<(Guid, string)>(invoiceResult.Errors);
         }
 
         var invoice = invoiceResult.Value;
@@ -114,7 +114,7 @@ public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvo
         var addResult = await _invoiceRepository.AddAsync(invoice, cancellationToken);
         if (addResult.IsFailed)
         {
-            return Result.Fail<Guid>(addResult.Errors);
+            return Result.Fail<(Guid, string)>(addResult.Errors);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -124,7 +124,7 @@ public sealed class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvo
             invoiceNumber,
             request.AccountId);
 
-        return Result.Ok(invoice.Id);
+        return Result.Ok((invoice.Id, invoiceNumber));
     }
 
     private static List<InvoiceLineItem> GroupChargesByBillingFrequency(
